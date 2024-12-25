@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import '../../assets/css/Login.css';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode'; // Corrected the import
 import axiosInstance from '../../utils/axiosInstance';
+import '../../assets/css/Login.css';
 import anh from '../../assets/img/anh copy.jpg';
+
 const Login = () => {
-  const [loading, setLoading] = useState(false); 
-  const navigate = useNavigate(); 
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
   const onFinish = async (values) => {
     setLoading(true);
     const { userName, password } = values;
+
     try {
       const response = await axiosInstance.post(`/SysUsers/Login`, {
         UserName: userName,
@@ -20,7 +23,7 @@ const Login = () => {
       if (response.data.status === 1) {
         const { token, refreshToken } = response.data;
 
-        // Decode the token to verify and extract user information
+        // Decode token to extract user information
         const decodedToken = jwtDecode(token);
         console.log('Decoded Token:', decodedToken);
 
@@ -28,19 +31,21 @@ const Login = () => {
         localStorage.setItem('accessToken', token);
         localStorage.setItem('refreshToken', refreshToken);
 
-        message.success('Login successful!');
+        message.success('Đăng nhập thành công!');
 
-        // Redirect and fetch data on the dashboard
+        // Redirect to dashboard
         navigate('/dashboard');
       } else {
-        message.error(response.data.message || 'Invalid username or password!');
+        message.error(response.data.message || 'Sai tài khoản hoặc mật khẩu!');
       }
     } catch (error) {
-      message.error('An error occurred during login. Please try again.');
+      console.error('Login Error:', error);
+      message.error('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại!');
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="login-container">
       <header className="login-header">
@@ -48,7 +53,7 @@ const Login = () => {
       </header>
       <div className="login-box">
         <div className="login-image">
-          <img src={anh} alt="Description" />
+          <img src={anh} alt="Login Illustration" />
         </div>
         <div className="login-form">
           <Form
@@ -59,7 +64,7 @@ const Login = () => {
             <h2>ĐĂNG NHẬP</h2>
             <Form.Item
               label="Tên đăng nhập"
-              name="userName" 
+              name="userName"
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               rules={[{ required: true, message: 'Xin vui lòng nhập tài khoản!' }]}
@@ -68,7 +73,7 @@ const Login = () => {
             </Form.Item>
             <Form.Item
               label="Mật khẩu"
-              name="password" 
+              name="password"
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
@@ -96,4 +101,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;
