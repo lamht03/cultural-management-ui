@@ -1,15 +1,12 @@
 import axios from 'axios';
 import { message } from 'antd';
-
 const API_URL = 'https://localhost:7284/api';
-
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
-
 // Intercept requests to include Authorization header
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
@@ -18,7 +15,6 @@ axiosInstance.interceptors.request.use((config) => {
   }
   return config;
 });
-
 // Intercept responses to handle token expiration
 axiosInstance.interceptors.response.use(
   (response) => response,
@@ -36,14 +32,11 @@ axiosInstance.interceptors.response.use(
         const refreshResponse = await axios.post(`${API_URL}/SysUsers/RefreshToken`, {
           RefreshToken: refreshToken,
         });
-
         if (refreshResponse.data.Status === 1) {
           const { Data: newAccessToken, RefreshToken: newRefreshToken } = refreshResponse.data;
-          
           // Lưu lại token mới vào localStorage
           localStorage.setItem('accessToken', newAccessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
-
           // Thử lại yêu cầu gốc với accessToken mới
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
@@ -58,7 +51,6 @@ axiosInstance.interceptors.response.use(
         window.location.href = '/'; // Redirect đến trang đăng nhập
       }
     }
-
     return Promise.reject(error);
   }
 );
@@ -71,5 +63,4 @@ export const handleLoginSuccess = (newAccessToken, newRefreshToken) => {
     console.error('Invalid tokens provided.');
   }
 };
-
 export default axiosInstance;
