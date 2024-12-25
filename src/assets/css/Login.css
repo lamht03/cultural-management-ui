@@ -1,0 +1,77 @@
+.login-container {
+    width: 100%;
+      height: 100vh;
+      background: url('../../assets/img/anh\ copy.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .icon-black {
+      color: black;
+    }
+    .login-header {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      text-align: center;
+    }
+    
+    .login-header h1 {
+      margin: 0;
+      margin-top: -440px;
+      font-size: 24px;
+    }
+    
+    .login-box {
+      margin-top: 20px; /* Adjust this if needed to position the box */
+      display: flex;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 936px;
+      height: 586px;
+    }
+    
+    .login-image {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .login-image img {
+      width: 563px;
+      height: 584px;
+    }
+    
+    .login-form {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    h2 {
+      text-align: center;
+    }
+    
+    .support-info {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .support-info p, .support-info a {
+      margin: 0;
+      color: #000;
+    }
+    
+    .support-info a:hover {
+      text-decoration: underline;
+    }
+    
