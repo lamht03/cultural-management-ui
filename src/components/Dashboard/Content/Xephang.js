@@ -69,7 +69,7 @@ const Nguoidung = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get("/CtgDiTichXepHang/List", {
+        const response = await axiosInstance.get("/DanhMucDiTichXepHang/List?pageNumber=1&pageSize=20", {
           params: { pageNumber: 1, pageSize: 20 },
         });
         if (response.data && Array.isArray(response.data.Data)) {
@@ -115,7 +115,7 @@ const Nguoidung = () => {
         try {
           // Thêm ID trực tiếp vào URL dưới dạng tham số truy vấn
           const response = await axiosInstance.post(
-            `/CtgDiTichXepHang/Delete?id=${record.key}`
+            `/DanhMucDiTichXepHang/Delete?id=${record.key}`
           );
           if (response?.data?.status === 1) {
             // Cập nhật dataSource bằng cách loại bỏ phần tử đã bị xóa
@@ -148,7 +148,7 @@ const Nguoidung = () => {
           TenDiTich: values.TenDiTich,
           GhiChu: values.GhiChu,
         };
-        await axiosInstance.post(`/CtgDiTichXepHang/Update`, payload);
+        await axiosInstance.post(`/DanhMucDiTichXepHang/Update`, payload);
         // Cập nhật dataSource trong state
         setDataSource((prev) =>
           prev.map((item) =>
@@ -164,7 +164,7 @@ const Nguoidung = () => {
           GhiChu: values.GhiChu,
         };
         const response = await axiosInstance.post(
-          `/CtgDiTichXepHang/Insert`,
+          `/DanhMucDiTichXepHang/Insert`,
           payload
         );
         // Cập nhật dataSource trong state

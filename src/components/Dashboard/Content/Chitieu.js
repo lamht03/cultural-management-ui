@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Input, Tree, Select, Button, Menu, Dropdown, Modal, Form, message } from 'antd';
+import { Layout, Input, Tree, Select, Button, Menu, Dropdown, Modal, Form, message,AutoComplete  } from 'antd';
 import '../../../assets/css/Nguoidung.css';
 import axiosInstance from '../../../utils/axiosInstance';
 const { Content } = Layout;
@@ -29,7 +29,7 @@ const Donvi = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get('/CtgChiTieu/List');
+        const response = await axiosInstance.get('/DanhMucChiTieu/List');
         if (response.data.status === 1) {
           setData(response.data.data);
         } else {
@@ -45,7 +45,7 @@ const Donvi = () => {
   useEffect(() => {
     const fetchLoaiMauPhieu = async () => {
       try {
-        const response = await axiosInstance.get('/CtgLoaiMauPhieu/List?pageNumber=1&pageSize=20');
+        const response = await axiosInstance.get('/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20');
         if (response.data.status === 1) {
           setLoaiMauPhieuList(response.data.data);
         } else {
@@ -120,10 +120,9 @@ const Donvi = () => {
       onOk: () => handleDelete(id),
     });
   };
-
   const handleDelete = async (id) => {
     try {
-      const response = await axiosInstance.post(`/CtgChiTieu/Delete?id=${id}`);
+      const response = await axiosInstance.post(`/DanhMucChiTieu/Delete?id=${id}`);
       if (response.data.status === 1) {
         message.success('Deleted successfully');
         setData(data.filter(item => item.ChiTieuID !== id));
@@ -135,12 +134,11 @@ const Donvi = () => {
       message.error('Failed to delete');
     }
   };
-
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
       if (modalType === 'edit' && selectedItem) {
-        const response = await axiosInstance.post('/CtgChiTieu/Update', {
+        const response = await axiosInstance.post('/DanhMucChiTieu/Update', {
           ChiTieuID: selectedItem.ChiTieuID,
           ChiTieuChaID: values.ChiTieuChaID,
           MaChiTieu: values.MaChiTieu,
@@ -165,7 +163,7 @@ const Donvi = () => {
   const handleAddOk = async () => {
     try {
       const values = await form.validateFields();
-      const response = await axiosInstance.post('/CtgChiTieu/Insert', values);
+      const response = await axiosInstance.post('/DanhMucChiTieu/Insert', values);
       if (response.data.status === 1) {
         message.success('Added successfully');
         window.location.reload();
@@ -252,22 +250,20 @@ const Donvi = () => {
   cancelText="Hủy"
 >
   <Form form={form} layout="vertical">
-    <Form.Item
-      name="ChiTieuChaID"
-      label="Chỉ tiêu cha"
-      rules={[{ required: true, message: 'Chỉ tiêu cha là bắt buộc' }]}
-    >
-      <Select
-        placeholder="Chọn chỉ tiêu cha"
-        style={{ width: '100%' }}
-      >
-        {data.map(item => (
-          <Select.Option key={item.ChiTieuID} value={item.ChiTieuID}>
-            {item.TenChiTieu}
-          </Select.Option>
-        ))}
-      </Select>
-    </Form.Item>
+  <Form.Item
+  name="ChiTieuChaID"
+  label="Chỉ tiêu cha"
+  rules={[{ required: true, message: 'Chỉ tiêu cha là bắt buộc' }]}
+>
+  <AutoComplete
+    placeholder="Chọn chỉ tiêu cha"
+    style={{ width: '100%' }}
+    options={data.map(item => ({
+      value: item.ChiTieuID,
+      label: item.TenChiTieu,
+    }))}
+  />
+</Form.Item>
 
     <Form.Item
       name="MaChiTieu"

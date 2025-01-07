@@ -22,10 +22,9 @@ const Content = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [form] = Form.useForm();
-
   useEffect(() => {
     axiosInstance
-      .get('/CtgDonViTinh/List', {
+      .get('/DanhMucDonViTinh/List?pageNumber=1&pageSize=20', {
         params: { pageNumber: 1, pageSize: 20 },
       })
       .then((response) => {
@@ -70,7 +69,7 @@ const Content = () => {
       cancelText: 'Hủy',
       onOk: () => {
         axiosInstance
-          .post(`/CtgDonViTinh/Delete`, null, {
+          .post(`/DanhMucDonViTinh/Delete`, null, {
             params: { id: record.DonViTinhID },
           })
           .then((response) => {
@@ -106,7 +105,7 @@ const Content = () => {
   const handleFormSubmit = (values) => {
     if (isEditing) {
       axiosInstance
-        .post('/CtgDonViTinh/Update', {
+        .post('/DanhMucDonViTinh/Update', {
           DonViTinhID: currentRecord.DonViTinhID,
           TenDonViTinh: values.TenDonViTinh,
           MaDonViTinh: values.MaDonViTinh,
@@ -130,7 +129,7 @@ const Content = () => {
         });
     } else {
       axiosInstance
-        .post('/CtgDonViTinh/Insert', {
+        .post('/DanhMucDonViTinh/Insert', {
           TenDonViTinh: values.TenDonViTinh,
           MaDonViTinh: values.MaDonViTinh,
           GhiChu: values.GhiChu,

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Layout, Table, Input, message, Popconfirm, Modal, Form, Checkbox } from 'antd';
+import { Button, Layout, Table, Input, message, Popconfirm, Modal, Form, Checkbox, Select } from 'antd';
 import { EditOutlined, DeleteOutlined, SettingOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../utils/axiosInstance';
 import '../../../assets/css/Nguoidung.css';
-
 const { Content } = Layout;
 const { Search } = Input;
+const { Option } = Select;
 const contentStyle = {
   width: '100%',
   height: '100%',
@@ -15,21 +15,21 @@ const contentStyle = {
   border: '1px solid #ccc',
   padding: '20px',
 };
-
 const Nguoidung = () => {
   const [searchName, setSearchName] = useState('');
   const [dataSource, setDataSource] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAddUserModalVisible, setIsAddUserModalVisible] = useState(false);
+  const [isAddFunctionModalVisible, setIsAddFunctionModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editRecord, setEditRecord] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-
   // Fetch data from API
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/SysGroups/GroupsList?pageNumber=1&pageSize=20', {
+      const response = await axiosInstance.get('/PermissionManagement/GetAllGroup?pageNumber=1&pageSize=20', {
         params: { pageNumber: 1, pageSize: 20 },
       });
       if (response.data.Status === 1) {
@@ -65,10 +65,30 @@ const Nguoidung = () => {
     setIsModalVisible(true);
   };
 
+  // Open modal for adding user to group
+  const showAddUserModal = () => {
+    setIsAddUserModalVisible(true);
+  };
+
+  // Open modal for adding function to group
+  const showAddFunctionModal = () => {
+    setIsAddFunctionModalVisible(true);
+  };
+
   // Close modal
   const handleCancel = () => {
     setIsModalVisible(false);
     setEditRecord(null);
+  };
+
+  // Close add user modal
+  const handleAddUserCancel = () => {
+    setIsAddUserModalVisible(false);
+  };
+
+  // Close add function modal
+  const handleAddFunctionCancel = () => {
+    setIsAddFunctionModalVisible(false);
   };
 
   // Add or Edit Group
@@ -77,7 +97,7 @@ const Nguoidung = () => {
       const values = await form.validateFields();
       if (editRecord) {
         // Update group
-        await axiosInstance.post('/SysGroups/UpdatingGroup', {
+        await axiosInstance.post('/PermissionManagement/UpdateGroup', {
           GroupID: editRecord.key,
           GroupName: values.GroupName,
           Description: values.Description,
@@ -85,7 +105,7 @@ const Nguoidung = () => {
         message.success('Group updated successfully.');
       } else {
         // Add group
-        await axiosInstance.post('/SysGroups/CreatingGroup', {
+        await axiosInstance.post('/PermissionManagement/CreateGroup', {
           GroupID: 0,
           GroupName: values.GroupName,
           Description: values.Description,
@@ -104,7 +124,7 @@ const Nguoidung = () => {
   const handleDelete = async (groupId) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post(`/SysGroups/DeleteGroup?groupId=${groupId}`);
+      const response = await axiosInstance.post(`/PermissionManagement/DeleteGroup?groupId=${groupId}`);
       if (response.data.Status === 1) {
         message.success('Group deleted successfully.');
         fetchGroups(); // Refresh data
@@ -214,6 +234,8 @@ const Nguoidung = () => {
                 </Form.Item>
               </Form>
             </Modal>
+            
+            
           </>
         ) : (
           <>
@@ -242,7 +264,7 @@ const Nguoidung = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f0f0f0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm người dùng</h3>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddUserModal}>
                       Thêm
                     </Button>
                   </div>
@@ -254,20 +276,15 @@ const Nguoidung = () => {
                 {/* Hàng thứ hai */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#e0e0e0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm người dùng</h3>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                      <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
-                        Lưu
-                      </Button>
-                      <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
-                        Thêm
-                      </Button>
-                    </div>
+                    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm chức năng cho nhóm</h3>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
+                      Thêm
+                    </Button>
                   </div>
                   <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <ul style={{ flex: 1 ,marginLeft: '-40px' }}>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <ul style={{ flex: 1 }}>
+                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
                         <span>Quản lý người dùng</span>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <Checkbox>Xem</Checkbox>
@@ -277,7 +294,7 @@ const Nguoidung = () => {
                           <CloseOutlined />
                         </div>
                       </li>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
                         <span>Quản lý nhóm</span>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <Checkbox>Xem</Checkbox>
@@ -287,7 +304,7 @@ const Nguoidung = () => {
                           <CloseOutlined />
                         </div>
                       </li>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
                         <span>Quản lý phân quyền</span>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <Checkbox>Xem</Checkbox>
@@ -297,7 +314,7 @@ const Nguoidung = () => {
                           <CloseOutlined />
                         </div>
                       </li>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
                         <span>Quản lý báo cáo</span>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <Checkbox>Xem</Checkbox>
@@ -309,6 +326,71 @@ const Nguoidung = () => {
                       </li>
                     </ul>
                   </div>
+                  <Modal
+              title="Thêm chức năng cho nhóm"
+              visible={isAddFunctionModalVisible}
+              onOk={handleAddFunctionCancel}
+              onCancel={handleAddFunctionCancel}
+              okText="Lưu"
+              cancelText="Hủy"
+            >
+              <Form layout="vertical">
+                <Form.Item label="Chọn chức năng">
+                  <Select placeholder="Chọn chức năng">
+                    <Option value="chucnang1">Chức năng 1</Option>
+                    <Option value="chucnang2">Chức năng 2</Option>
+                  </Select>
+                </Form.Item>
+              </Form>
+            </Modal>
+            <Modal
+              title="Thêm người dùng vào nhóm"
+              visible={isAddUserModalVisible}
+              onOk={handleAddUserCancel}
+              onCancel={handleAddUserCancel}
+              okText="Lưu"
+              cancelText="Hủy"
+            >
+              <Form layout="vertical">
+                <Form.Item label="Chọn cơ quan">
+                  <Select placeholder="Chọn cơ quan">
+                    <Option value="coquan1">Cơ quan 1</Option>
+                    <Option value="coquan2">Cơ quan 2</Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item label="Chọn người dùng">
+                  <Select placeholder="Chọn người dùng">
+                    <Option value="user1">Người dùng 1</Option>
+                    <Option value="user2">Người dùng 2</Option>
+                  </Select>
+                </Form.Item>
+              </Form>
+            </Modal>
+            <Modal
+              title={editRecord ? 'Chỉnh sửa nhóm' : 'Thêm nhóm'}
+              visible={isModalVisible}
+              onOk={handleOk}
+              onCancel={handleCancel}
+              okText="Lưu"
+              cancelText="Hủy"
+            >
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  name="GroupName"
+                  label="Tên nhóm"
+                  rules={[{ required: true, message: 'Vui lòng nhập tên nhóm!' }]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  name="Description"
+                  label="Ghi chú"
+                  rules={[{ required: true, message: 'Vui lòng nhập ghi chú!' }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Form>
+            </Modal>
                 </div>
               </div>
             </div>
@@ -325,5 +407,4 @@ const Nguoidung = () => {
     </Layout>
   );
 };
-
 export default Nguoidung;

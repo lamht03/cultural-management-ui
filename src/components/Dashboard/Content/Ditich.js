@@ -22,7 +22,7 @@ const Nguoidung = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/CtgLoaiDiTich/List?pageNumber=1&pageSize=20');
+      const response = await axiosInstance.get('/DanhMucLoaiDiTich/List?pageNumber=1&pageSize=20');
       if (response.data.status === 1) {
         const fetchedData = response.data.data.map((item, index) => ({
           key: item.LoaiDiTichID,
@@ -60,7 +60,7 @@ const Nguoidung = () => {
       if (editingRecord) {
         // Update record
         const response = await axiosInstance.post(
-          `/CtgLoaiDiTich/Update`,
+          `/DanhMucLoaiDiTich/Update`,
           { ...values, LoaiDiTichID: editingRecord.key }
         );
         if (response.data.status === 1) {
@@ -71,7 +71,7 @@ const Nguoidung = () => {
       } else {
         // Add new record
         const response = await axiosInstance.post(
-          '/CtgLoaiDiTich/Insert',
+          '/DanhMucLoaiDiTich/Insert',
           values
         );
         if (response.data.status === 1) {
@@ -106,7 +106,7 @@ const Nguoidung = () => {
       onOk: async () => {
         try {
           const response = await axiosInstance.post(
-            `/CtgLoaiDiTich/Delete?id=${record.key}`
+            `/DanhMucLoaiDiTich/Delete?id=${record.key}`
           );
           if (response.data.status === 1) {
             message.success('Xóa loại di tích thành công!');

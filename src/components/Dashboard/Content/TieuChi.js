@@ -32,7 +32,7 @@ const Donvi = () => {
 
   const fetchData = () => {
     axiosInstance
-      .get('/CtgTieuChi/List')
+      .get('/DanhMucTieuChi/List')
       .then((response) => {
         if (response.data.status === 1) {
           setData(response.data.data);
@@ -100,7 +100,7 @@ const Donvi = () => {
       cancelText: 'Hủy',
       onOk: () => {
         axiosInstance
-          .post(`/CtgTieuChi/Delete?id=${key}`)
+          .post(`/DanhMucTieuChi/Delete?id=${key}`)
           .then((response) => {
             if (response.data.status === 1) {
               message.success('Xóa thành công!');
@@ -153,7 +153,7 @@ const Donvi = () => {
     try {
       const values = await form.validateFields();
       console.log('Add values:', values); // Log the values being sent
-      const response = await axiosInstance.post('/CtgTieuChi/Insert', {
+      const response = await axiosInstance.post('/DanhMucTieuChi/Insert', {
         MaTieuChi: values.MaTieuChi,
         TenTieuChi: values.TenTieuChi,
         TieuChiChaID: values.TieuChiChaID,
@@ -179,7 +179,7 @@ const Donvi = () => {
     try {
       const values = await form.validateFields();
       console.log('Edit values:', values); // Log the values being sent
-      const response = await axiosInstance.post(`/CtgTieuChi/Update?id=${selectedItem.TieuChiID}`, {
+      const response = await axiosInstance.post(`/DanhMucTieuChi/Update?id=${selectedItem.TieuChiID}`, {
         tieuChiID: selectedItem.TieuChiID,
         MaTieuChi: values.MaTieuChi,
         TenTieuChi: values.TenTieuChi,
@@ -286,64 +286,61 @@ const Donvi = () => {
         </div>
       )}
       <Modal
-        title="Thêm tiêu chí"
-        visible={isAddModalVisible}
-        onOk={handleAddOk}
-        onCancel={() => setIsAddModalVisible(false)}
-        okText="Lưu"
-        cancelText="Hủy"
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="TieuChiChaID"
-            label="Tiêu cột cha"
-            rules={[{ required: true, message: 'Vui lòng nhập mã tiêu chí!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="MaTieuChi"
-            label="Mã cột"
-            rules={[{ required: true, message: 'Vui lòng nhập tên tiêu chí!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="TenTieuChi"
-            label="Tên cột"
-            rules={[{ required: true, message: 'Vui lòng nhập tiêu chí cha!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="LoaiTieuChi"
-            label="Loại tiêu chí"
-            rules={[{ required: true, message: 'Vui lòng nhập loại tiêu chí!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="KieuDuLieuCot"
-            label="Kiểu dữ liệu cột"
-            rules={[{ required: true, message: 'Vui lòng nhập kiểu dữ liệu cột!' }]}
-          >
-            <Select placeholder="Chọn kiểu dữ liệu cột">
-              <Select.Option value="0">Kiểu số</Select.Option>
-              <Select.Option value="1">Kiểu chữ</Select.Option>
-              <Select.Option value="2">Kiểu số thập phân</Select.Option>
-              <Select.Option value="3">Kiểu dung sai</Select.Option>
-              <Select.Option value="4">Kiểu ngày tháng</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="GhiChu"
-            label="Ghi chú"
-            rules={[{ required: true, message: 'Vui lòng nhập ghi chú!' }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
+  title="Thêm tiêu chí"
+  visible={isAddModalVisible}
+  onOk={handleAddOk}
+  onCancel={() => setIsAddModalVisible(false)}
+  okText="Lưu"
+  cancelText="Hủy"
+>
+  <Form form={form} layout="vertical">
+    <Form.Item
+      name="TieuChiChaID"
+      label="Tiêu cột cha"
+      rules={[{ required: true, message: 'Vui lòng chọn tiêu chí cha!' }]}
+    >
+      <Select placeholder="Chọn tiêu chí cha" style={{ width: '100%' }}>
+        {data.map(item => (
+          <Select.Option key={item.TieuChiID} value={item.TieuChiID}>
+            {item.TenTieuChi}
+          </Select.Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    <Form.Item
+      name="MaTieuChi"
+      label="Mã cột"
+      rules={[{ required: true, message: 'Vui lòng nhập mã tiêu chí!' }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Form.Item
+      name="TenTieuChi"
+      label="Tên cột"
+      rules={[{ required: true, message: 'Vui lòng nhập tên tiêu chí!' }]}
+    >
+      <Input />
+    </Form.Item>
+
+    
+
+    <Form.Item
+      name="KieuDuLieuCot"
+      label="Kiểu dữ liệu cột"
+      rules={[{ required: true, message: 'Vui lòng nhập kiểu dữ liệu cột!' }]}
+    >
+      <Select placeholder="Chọn kiểu dữ liệu cột">
+        <Select.Option value="0">Kiểu số</Select.Option>
+        <Select.Option value="1">Kiểu chữ</Select.Option>
+        <Select.Option value="2">Kiểu số thập phân</Select.Option>
+        <Select.Option value="3">Kiểu dung sai</Select.Option>
+        <Select.Option value="4">Kiểu ngày tháng</Select.Option>
+      </Select>
+    </Form.Item>
+  </Form>
+</Modal>
       <Modal
         title="Sửa tiêu chí"
         visible={isEditModalVisible}

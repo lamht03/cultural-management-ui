@@ -42,7 +42,7 @@ const Nguoidung = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/CtgKyBaoCao/List?pageNumber=1&pageSize=20');
+      const response = await axiosInstance.get('/DanhMucKyBaoCao/List?pageNumber=1&pageSize=20');
       if (response?.data?.status === 1) {
         const tableData = response.data.data.map((item, index) => ({
           key: item.KyBaoCaoID,
@@ -104,7 +104,7 @@ const Nguoidung = () => {
       };
 
       if (modalMode === 'add') {
-        const response = await axiosInstance.post('/CtgKyBaoCao/Insert', payload);
+        const response = await axiosInstance.post('/DanhMucKyBaoCao/Insert', payload);
         if (response?.data?.status === 1) {
           message.success('Thêm thành công!');
           setIsModalVisible(false);
@@ -113,7 +113,7 @@ const Nguoidung = () => {
           message.error('Có lỗi xảy ra khi thêm dữ liệu!');
         }
       } else if (modalMode === 'edit') {
-        const response = await axiosInstance.post('/CtgKyBaoCao/Update', {
+        const response = await axiosInstance.post('/DanhMucKyBaoCao/Update', {
           ...payload,
           KyBaoCaoID: currentRecord.key,
         });
@@ -147,7 +147,7 @@ const Nguoidung = () => {
           try {
             // Call the delete API with the id as a query parameter
             const response = await axiosInstance.post(
-              `/CtgKyBaoCao/Delete?id=${record.key}`
+              `/DanhMucKyBaoCao/Delete?id=${record.key}`
             );
   
             if (response?.data?.status === 1) {

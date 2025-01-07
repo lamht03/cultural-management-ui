@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Button, Layout, Table, Input, Select } from 'antd';
-import { EditOutlined, DeleteOutlined, RollbackOutlined } from '@ant-design/icons'; // Import icons
-import '../../../assets/css/Nguoidung.css'; // File CSS cho bảng
-
+import { EditOutlined, DeleteOutlined, RollbackOutlined } from '@ant-design/icons'; 
+import '../../../assets/css/Nguoidung.css';
 const { Content } = Layout;
 const { Option } = Select;
-const { Search } = Input; // Add this to import Search
-
+const { Search } = Input;
 const columns = [
   {
     title: 'STT',
@@ -57,7 +55,6 @@ const columns = [
     ),
   },
 ];
-
 const dataSource = [
   {
     key: '1',
@@ -80,7 +77,6 @@ const dataSource = [
     coQuan: 'Tập đoàn ABC',
   },
 ];
-
 const contentStyle = {
   width: '100%',
   height: '900px',
@@ -90,25 +86,20 @@ const contentStyle = {
   border: '1px solid #ccc',
   padding: '20px',
 };
-
 const Nguoidung = () => {
   const [searchName, setSearchName] = useState('');
   const [searchGender, setSearchGender] = useState('');
-
   const handleNameChange = (e) => setSearchName(e.target.value);
   const handleGenderChange = (value) => setSearchGender(value);
-
   const onSearch = (value) => {
     setSearchName(value); // This will handle the search input
   };
-
   const filteredData = dataSource.filter(item => {
     return (
       item.hoTen.toLowerCase().includes(searchName.toLowerCase()) &&
       (searchGender ? item.gioiTinh === searchGender : true)
     );
   });
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
@@ -117,7 +108,6 @@ const Nguoidung = () => {
           </h1>
           <Button type="primary">Thêm</Button>
         </div>
-
         <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
           <Select
           allowClear
@@ -141,7 +131,6 @@ const Nguoidung = () => {
             }}
           />
         </div>
-
         <Table
           className="custom-table"
           dataSource={filteredData}
@@ -152,5 +141,4 @@ const Nguoidung = () => {
     </Layout>
   );
 };
-
 export default Nguoidung;

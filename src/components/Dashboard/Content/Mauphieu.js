@@ -75,7 +75,7 @@ const Nguoidung = () => {
     // Fetch data from the API when the component mounts
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get(`/CtgLoaiMauPhieu/List?pageNumber=1&pageSize=20`, {
+        const response = await axiosInstance.get(`/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
           },
@@ -158,7 +158,7 @@ const Nguoidung = () => {
       let response;
       if (isEditMode) {
         response = await axiosInstance.post(
-          `/CtgLoaiMauPhieu/Update`,
+          `/DanhMucLoaiMauPhieu/Update`,
           { ...dataToSend, LoaiMauPhieuID: selectedRecord.key },
           {
             headers: {
@@ -168,7 +168,7 @@ const Nguoidung = () => {
         );
       } else {
         response = await axiosInstance.post(
-          `/CtgLoaiMauPhieu/Insert`,
+          `/DanhMucLoaiMauPhieu/Insert`,
           dataToSend,
           {
             headers: {
@@ -209,7 +209,7 @@ const Nguoidung = () => {
         return;
       }
       const response = await axiosInstance.post(
-        `/CtgLoaiMauPhieu/Delete`, 
+        `/DanhMucLoaiMauPhieu/Delete`, 
         null,  
         {
           headers: {
