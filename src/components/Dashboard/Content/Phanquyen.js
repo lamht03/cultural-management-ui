@@ -29,7 +29,7 @@ const Nguoidung = () => {
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/PermissionManagement/GetAllGroup?pageNumber=1&pageSize=20', {
+      const response = await axiosInstance.get('/PermissionManagement/GetAllFunction?pageNumber=1&pageSize=20', {
         params: { pageNumber: 1, pageSize: 20 },
       });
       if (response.data.Status === 1) {
@@ -97,7 +97,7 @@ const Nguoidung = () => {
       const values = await form.validateFields();
       if (editRecord) {
         // Update group
-        await axiosInstance.post('/PermissionManagement/UpdateGroup', {
+        await axiosInstance.post('/PermissionManagement/UpdateFunction', {
           GroupID: editRecord.key,
           GroupName: values.GroupName,
           Description: values.Description,
@@ -105,7 +105,7 @@ const Nguoidung = () => {
         message.success('Group updated successfully.');
       } else {
         // Add group
-        await axiosInstance.post('/PermissionManagement/CreateGroup', {
+        await axiosInstance.post('/PermissionManagement/CreateFunction', {
           GroupID: 0,
           GroupName: values.GroupName,
           Description: values.Description,
@@ -124,7 +124,7 @@ const Nguoidung = () => {
   const handleDelete = async (groupId) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post(`/PermissionManagement/DeleteGroup?groupId=${groupId}`);
+      const response = await axiosInstance.post(`/PermissionManagement/DeleteFunction?functionId=${groupId}`);
       if (response.data.Status === 1) {
         message.success('Group deleted successfully.');
         fetchGroups(); // Refresh data

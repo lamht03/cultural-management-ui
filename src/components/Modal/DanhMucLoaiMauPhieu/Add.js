@@ -75,7 +75,7 @@ const AddEditModal = ({ isVisible, onCancel, onFinish, initialValues, modalMode 
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            {modalMode === 'add' ? 'Thêm' : 'Cập nhật'}
+            {modalMode === 'add' ? 'Thêm' : 'Lưu'}
           </Button>
           <Button
             style={{ marginLeft: '10px' }}

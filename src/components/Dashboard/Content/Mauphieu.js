@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Layout, Table, Input, message, Modal, DatePicker } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-
 import AddEditModal from '../../Modal/DanhMucLoaiMauPhieu/Add';
 import axiosInstance from '../../../utils/axiosInstance';
 import '../../../assets/css/Nguoidung.css';
@@ -67,9 +66,7 @@ const Nguoidung = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [dataSource, setDataSource] = useState([]); // Start with an empty array
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false); // State for delete modal
-  const onChange = (date, dateString) => {
-    console.log(date, dateString);
-  };
+  
 
   useEffect(() => {
     // Fetch data from the API when the component mounts
@@ -99,7 +96,7 @@ const Nguoidung = () => {
       }
     };
     fetchData();
-  }, []); // Ensure the fetchData is only called once after initial render
+  }, []); 
 
   useEffect(() => {
     const fetchSearch = async () => {
@@ -155,8 +152,10 @@ const Nguoidung = () => {
         MaLoaiMauPhieu: values.MaLoaiMauPhieu,
         GhiChu: values.GhiChu,
       };
+  
       let response;
       if (isEditMode) {
+        // Gửi API cập nhật
         response = await axiosInstance.post(
           `/DanhMucLoaiMauPhieu/Update`,
           { ...dataToSend, LoaiMauPhieuID: selectedRecord.key },
@@ -167,6 +166,7 @@ const Nguoidung = () => {
           }
         );
       } else {
+        // Gửi API thêm mới
         response = await axiosInstance.post(
           `/DanhMucLoaiMauPhieu/Insert`,
           dataToSend,
@@ -177,23 +177,48 @@ const Nguoidung = () => {
           }
         );
       }
+  
       if (response.data.status === 1) {
         message.success(isEditMode ? 'Cập nhật thành công!' : 'Đã thêm thành công!');
-        setDataSource(isEditMode
-          ? dataSource.map(item => item.key === selectedRecord.key ? { ...item, ...response.data.data } : item)
-          : [...dataSource, response.data.data]
-        );
-        setIsModalOpen(false);
-        window.location.href = '/dashboard/danh-muc-loai-mau-phieu';
+  
+        // Gọi lại API để lấy danh sách mới nhất
+        const fetchData = async () => {
+          try {
+            const response = await axiosInstance.get(`/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+              },
+            });
+  
+            if (response.data && response.data.status === 1 && response.data.data) {
+              const formattedData = response.data.data.map((item, index) => ({
+                key: item.LoaiMauPhieuID,
+                stt: index + 1,
+                TenLoaiMauPhieu: item.TenLoaiMauPhieu || '',
+                MaLoaiMauPhieu: item.MaLoaiMauPhieu || '',
+                TrangThai: item.TrangThai,
+                GhiChu: item.GhiChu,
+              }));
+              setDataSource(formattedData);
+            } else {
+              message.error('Không thể lấy dữ liệu hợp lệ từ máy chủ');
+            }
+          } catch (error) {
+            message.error('Đã xảy ra lỗi khi lấy dữ liệu từ máy chủ');
+          }
+        };
+  
+        await fetchData(); // Cập nhật bảng với dữ liệu mới
+        setIsModalOpen(false); // Đóng modal
       } else {
         message.error('Có lỗi xảy ra, vui lòng thử lại!');
       }
     } catch (error) {
       console.error('Error saving data:', error);
-      message.error('Lỗi khi gọi API, vui lòng thử lại!');
-      window.location.href = '/dashboard/danh-muc-loai-mau-phieu';
+      message.error('Đã xảy ra lỗi trong quá trình lưu.');
     }
   };
+  
 
   const handleDelete = (record) => {
     setSelectedRecord(record);
@@ -263,8 +288,6 @@ const Nguoidung = () => {
             }}
           />
         </div>
-
-       
       <Table
         className="custom-table"
         columns={columns(handleOpenModal, handleDelete)}
@@ -289,8 +312,8 @@ const Nguoidung = () => {
         visible={isDeleteModalVisible}
         onOk={handleDeleteOk}
         onCancel={handleDeleteCancel}
-        okText="Xóa"
-        cancelText="Hủy"
+        okText="Có"
+        cancelText="Không"
       >
         <p>Bạn có chắc chắn muốn xóa loại mẫu phiếu này?</p>
       </Modal>

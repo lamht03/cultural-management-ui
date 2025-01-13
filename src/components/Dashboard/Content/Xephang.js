@@ -105,32 +105,39 @@ const Nguoidung = () => {
     });
     setIsModalVisible(true);
   };
-  const handleDelete = async (record) => {
+  const handleDelete = (record) => {
+    // Kiểm tra xem record.key có hợp lệ không
+    if (!record.key) {
+      message.error("Không thể xóa bản ghi này vì không có ID.");
+      return;
+    }
+  
     Modal.confirm({
-      title: "Xóa bản ghi",
-      content: `Bạn có muốn xóa bản ghi không?`,
-      okText: "Đồng ý",
-      cancelText: "Hủy",
+      title: 'Bạn có chắc chắn muốn xóa?',
+      okText: 'Đồng ý',
+      cancelText: 'Hủy',
       onOk: async () => {
+        setLoading(true);
         try {
-          // Thêm ID trực tiếp vào URL dưới dạng tham số truy vấn
-          const response = await axiosInstance.post(
-            `/DanhMucDiTichXepHang/Delete?id=${record.key}`
-          );
-          if (response?.data?.status === 1) {
-            // Cập nhật dataSource bằng cách loại bỏ phần tử đã bị xóa
-            setDataSource((prev) =>
-              prev.filter((item) => item.key !== record.key)
-            );
+          // Đảm bảo rằng id là một giá trị hợp lệ trước khi thực hiện yêu cầu xóa
+          const response = await axiosInstance.post(`/DanhMucDiTichXepHang/Delete?id=${record.key}`);
+          if (response.data.status === 1) {
             message.success("Xóa thành công!");
+            // Cập nhật lại dataSource trong state sau khi xóa
+            setDataSource((prev) => prev.filter((item) => item.key !== record.key));
           } else {
-            message.error(`Xóa thất bại: ${response.data.message}`);
+            message.error("Xóa thất bại!");
           }
         } catch (error) {
-          console.error("Lỗi khi xóa bản ghi:", error);
-          message.error("Đã xảy ra lỗi khi xóa bản ghi.");
+          console.error("Error deleting record:", error);
+          message.error("Có lỗi xảy ra. Vui lòng thử lại!");
+        } finally {
+          setLoading(false);
         }
       },
+      onCancel: () => {
+        // Xử lý khi người dùng hủy bỏ xóa
+      }
     });
   };
   const handleAdd = () => {
@@ -141,51 +148,66 @@ const Nguoidung = () => {
   const handleModalOk = async () => {
     try {
       const values = form.getFieldsValue(); // Lấy dữ liệu từ form
-      if (editingRecord) {
+      let response;
+  
+      // Nếu đang chỉnh sửa một bản ghi (editingRecord), sẽ lấy DiTichXepHangID từ đó
+      const DiTichXepHangID = editingRecord ? editingRecord.key : null;
+  
+      if (DiTichXepHangID) {
         // Cập nhật bản ghi hiện tại
         const payload = {
-          DiTichXepHangID: editingRecord.key, // ID của bản ghi cần cập nhật
+          DiTichXepHangID: DiTichXepHangID, // ID của bản ghi cần cập nhật
           TenDiTich: values.TenDiTich,
           GhiChu: values.GhiChu,
         };
-        await axiosInstance.post(`/DanhMucDiTichXepHang/Update`, payload);
-        // Cập nhật dataSource trong state
-        setDataSource((prev) =>
-          prev.map((item) =>
-            item.key === editingRecord.key
-              ? { ...item, TenDiTich: values.TenDiTich, GhiChu: values.GhiChu }
-              : item
-          )
-        );
+        response = await axiosInstance.post(`/DanhMucDiTichXepHang/Update`, payload);
       } else {
         // Thêm bản ghi mới
         const payload = {
           TenDiTich: values.TenDiTich,
           GhiChu: values.GhiChu,
         };
-        const response = await axiosInstance.post(
-          `/DanhMucDiTichXepHang/Insert`,
-          payload
-        );
-        // Cập nhật dataSource trong state
-        setDataSource((prev) => [
-          ...prev,
-          {
-            key: response.data.DiTichXepHangID, // ID từ API trả về
-            stt: prev.length + 1, // Số thứ tự
-            TenDiTich: values.TenDiTich,
-            GhiChu: values.GhiChu,
-          },
-        ]);
+        response = await axiosInstance.post(`/DanhMucDiTichXepHang/Insert`, payload);
       }
-      // Đóng modal sau khi xử lý xong
-      setIsModalVisible(false);
-      message.success(editingRecord ? "Cập nhật thành công!" : "Thêm mới thành công!");
+  
+      // Kiểm tra kết quả phản hồi từ API
+      if (response.data.status === 1) {
+        // Thành công
+        message.success(editingRecord ? "Cập nhật thành công!" : "Thêm mới thành công!");
+        window.location.reload();
+  
+        // Cập nhật dataSource trong state
+        if (!editingRecord) {
+          setDataSource((prev) => [
+            ...prev,
+            {
+              key: response.data.DiTichXepHangID, // ID từ API trả về
+              stt: prev.length + 1, // Số thứ tự
+              TenDiTich: values.TenDiTich,
+              GhiChu: values.GhiChu,
+            },
+          ]);
+        } else {
+          setDataSource((prev) =>
+            prev.map((item) =>
+              item.key === editingRecord.key
+                ? { ...item, TenDiTich: values.TenDiTich, GhiChu: values.GhiChu }
+                : item
+            )
+          );
+        }
+        setIsModalVisible(false);
+      } else {
+        // Lỗi từ API
+        message.error(response.data.message || "Đã xảy ra lỗi khi lưu dữ liệu.");
+      }
     } catch (error) {
       console.error("Lỗi khi lưu dữ liệu:", error);
-      message.error("Đã xảy ra lỗi khi lưu dữ liệu.");
+      message.error("Có lỗi xảy ra. Vui lòng thử lại!");
     }
   };
+  
+  
   const handleModalCancel = () => {
     setIsModalVisible(false);
   };

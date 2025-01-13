@@ -100,9 +100,9 @@ const Nguoidung = () => {
     Modal.confirm({
       title: 'Xóa Dữ Liệu',
       content: 'Bạn có chắc chắn muốn xóa dữ liệu này không?',
-      okText: 'Xóa',
-      cancelText: 'Hủy',
-      okType: 'danger',
+      okText: 'Có',
+      cancelText: 'Không',
+      okType: 'primary',
       onOk: async () => {
         try {
           const response = await axiosInstance.post(

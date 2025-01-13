@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Tree, message, Layout, Button, Menu, Modal, Form, Select } from 'antd';
-import axiosInstance from './../../../utils/axiosInstance'; // Your axios instance setup
+import { Input, Tree, message, Layout, Button, Menu, Dropdown, Modal, Form, Select } from 'antd';
+import axiosInstance from './../../../utils/axiosInstance';
+
+const { Content } = Layout;
+const { Search } = Input;
 
 const contentStyle = {
   width: '100%',
@@ -12,37 +15,30 @@ const contentStyle = {
   border: '1px solid #ccc',
 };
 
-const { Search } = Input;
-const { Content } = Layout;
-const { confirm } = Modal;
-
 const Donvi = () => {
   const [data, setData] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
-  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, key: null });
-  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalType, setModalType] = useState(''); // 'add', 'edit', 'delete'
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const fetchData = () => {
-    axiosInstance
-      .get('/DanhMucTieuChi/List')
-      .then((response) => {
-        if (response.data.status === 1) {
-          setData(response.data.data);
-        } else {
-          message.error(response.data.message);
-        }
-      })
-      .catch(() => {
-        message.error('Failed to fetch data');
-      });
+  const fetchData = async () => {
+    try {
+      const response = await axiosInstance.get('/DanhMucTieuChi/List');
+      if (response.data.status === 1) {
+        setData(response.data.data);
+      } else {
+        message.error(response.data.message);
+      }
+    } catch (error) {
+      message.error('Failed to fetch data');
+    }
   };
 
   const onSearch = (value) => {
@@ -78,127 +74,90 @@ const Donvi = () => {
     setAutoExpandParent(false);
   };
 
-  const onRightClick = ({ event, node }) => {
-    event.preventDefault();
-    setContextMenu({
-      visible: true,
-      x: event.pageX,
-      y: event.pageY,
-      key: node.key,
-    });
-  };
-
-  const closeContextMenu = () => {
-    setContextMenu({ visible: false, x: 0, y: 0, key: null });
-  };
-
-  const handleDelete = (key) => {
-    confirm({
-      title: 'Bạn có chắc chắn muốn xóa tiêu chí này?',
-      content: 'Thao tác này không thể hoàn tác.',
-      okText: 'Xóa',
-      cancelText: 'Hủy',
-      onOk: () => {
-        axiosInstance
-          .post(`/DanhMucTieuChi/Delete?id=${key}`)
-          .then((response) => {
-            if (response.data.status === 1) {
-              message.success('Xóa thành công!');
-              fetchData(); // Reload data after deletion
-            } else {
-              message.error(response.data.message);
-            }
-          })
-          .catch(() => {
-            message.error('Xóa thất bại!');
-          });
-      },
-    });
-  };
-
-  const handleMenuClick = ({ key }) => {
+  const handleMenuClick = (key) => {
     if (key === 'add') {
       showAddModal();
     } else if (key === 'edit') {
-      showEditModal();
+      showModal('edit', selectedItem);
     } else if (key === 'delete') {
-      handleDelete(contextMenu.key);
+      confirmDelete(selectedItem.TieuChiID);
     }
-    closeContextMenu();
+  };
+
+  const showModal = (type, item) => {
+    setModalType(type);
+    setSelectedItem(item);
+    setIsModalVisible(true);
+    if (type === 'edit' && item) {
+      form.setFieldsValue({
+        MaTieuChi: item.MaTieuChi,
+        TenTieuChi: item.TenTieuChi,
+        GhiChu: item.GhiChu,
+        TieuChiChaID: item.TieuChiChaID,
+        KieuDuLieuCot: item.KieuDuLieuCot,
+        LoaiTieuChi: item.LoaiTieuChi,
+      });
+    }
   };
 
   const showAddModal = () => {
-    setIsAddModalVisible(true);
+    setModalType('add');
+    setSelectedItem(null);
+    setIsModalVisible(true);
     form.resetFields();
-    form.setFieldsValue({ TieuChiChaID: contextMenu.key });
   };
 
-  const showEditModal = () => {
-    const item = data.find((item) => item.TieuChiID.toString() === contextMenu.key);
-    if (!item) {
-      message.error('Không tìm thấy tiêu chí để chỉnh sửa');
-      return;
-    }
-    setSelectedItem(item);
-    setIsEditModalVisible(true);
-    form.setFieldsValue({
-      MaTieuChi: item.MaTieuChi,
-      TenTieuChi: item.TenTieuChi,
-      KieuDuLieuCot: item.KieuDuLieuCot.toString(),
-      GhiChu: item.GhiChu,
+  const confirmDelete = (id) => {
+    Modal.confirm({
+      title: 'Xóa dữ liệu',
+      content: 'Bạn có muốn xóa tiêu chí này không?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: () => handleDelete(id),
     });
   };
 
-  const handleAddOk = async () => {
+  const handleDelete = async (id) => {
     try {
-      const values = await form.validateFields();
-      console.log('Add values:', values); // Log the values being sent
-      const response = await axiosInstance.post('/DanhMucTieuChi/Insert', {
-        MaTieuChi: values.MaTieuChi,
-        TenTieuChi: values.TenTieuChi,
-        TieuChiChaID: values.TieuChiChaID,
-        KieuDuLieuCot: parseInt(values.KieuDuLieuCot, 10),
-        LoaiTieuChi: values.LoaiTieuChi,
-        GhiChu: values.GhiChu,
-      });
-      console.log('Add response:', response); // Log the response
+      const response = await axiosInstance.post(`/DanhMucTieuChi/Delete?id=${id}`);
       if (response.data.status === 1) {
-        message.success('Thêm thành công!');
-        fetchData();
+        message.success('Xóa thành công');
+        fetchData(); // Refresh data after deletion
       } else {
-        message.error(response.data.message);
+        message.error(response.data.message || 'Failed to delete');
       }
-      setIsAddModalVisible(false);
     } catch (error) {
-      message.error('Failed to save');
-      console.error('Add error:', error); // Log the error
+      message.error('Failed to delete. Please try again later.');
     }
   };
 
-  const handleEditOk = async () => {
+  const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      console.log('Edit values:', values); // Log the values being sent
-      const response = await axiosInstance.post(`/DanhMucTieuChi/Update?id=${selectedItem.TieuChiID}`, {
-        tieuChiID: selectedItem.TieuChiID,
-        MaTieuChi: values.MaTieuChi,
-        TenTieuChi: values.TenTieuChi,
-        KieuDuLieuCot: parseInt(values.KieuDuLieuCot, 10),
-        GhiChu: values.GhiChu,
+      const apiEndpoint = modalType === 'edit' ? '/DanhMucTieuChi/Update' : '/DanhMucTieuChi/Insert';
+      const response = await axiosInstance.post(apiEndpoint, {
+        ...values,
+        TieuChiID: selectedItem ? selectedItem.TieuChiID : undefined, // Include ID only for edit
       });
-      console.log('Edit response:', response); // Log the response
       if (response.data.status === 1) {
-        message.success('Sửa thành công!');
-        fetchData();
+        message.success(modalType === 'edit' ? 'Cập nhật thành công' : 'Thêm thành công');
+        fetchData(); // Refresh data after add/edit
       } else {
         message.error(response.data.message);
       }
-      setIsEditModalVisible(false);
+      setIsModalVisible(false);
     } catch (error) {
       message.error('Failed to save');
-      console.error('Edit error:', error); // Log the error
     }
   };
+
+  const menu = (
+    <Menu onClick={({ key }) => handleMenuClick(key)}>
+      <Menu.Item key="add">Thêm tiêu chí</Menu.Item>
+      <Menu.Item key="edit" disabled={!selectedItem}>Sửa</Menu.Item>
+      <Menu.Item key="delete" disabled={!selectedItem}>Xóa</Menu.Item>
+    </Menu>
+  );
 
   const generateTreeDataWithReportSections = (data) => {
     const headNode = {
@@ -206,45 +165,36 @@ const Donvi = () => {
       key: 'head-node',
       children: [],
     };
-
     const bodyNode = {
       title: <strong style={{ fontSize: '18px', color: '#000' }}>Phần nội dung tiêu chí báo cáo</strong>,
       key: 'body-node',
-      children: [],
+      children: loop(data),
     };
-
     const tailNode = {
       title: <strong style={{ fontSize: '18px', color: '#000' }}>Phần cuối báo cáo</strong>,
       key: 'tail-node',
       children: [],
     };
-
-    const middleIndex = Math.floor(data.length / 2);
-    const treeWithBody = [
-      ...data.slice(0, middleIndex),
-      bodyNode,
-      ...data.slice(middleIndex),
-    ];
-
-    return [headNode, ...loop(treeWithBody), tailNode];
+    return [headNode, bodyNode, tailNode];
   };
 
   const loop = (data) =>
-    data.map((item) => ({
-      title: item.title || item.TenTieuChi,
-      key: item.TieuChiID ? item.TieuChiID.toString() : item.key,
-      children: item.children ? loop(item.children) : [],
-    }));
+    data.map((item) => {
+      const title = (
+        <Dropdown overlay={menu} trigger={['contextMenu']} onVisibleChange={(flag) => flag && setSelectedItem(item)}>
+          <span>{item.TenTieuChi || 'No Title'}</span>
+        </Dropdown>
+      );
+      const key = item.TieuChiID ? item.TieuChiID.toString() : item.key || 'default-key';
+      const children = item.children && Array.isArray(item.children) ? loop(item.children) : [];
+      return {
+        title,
+        key,
+        children,
+      };
+    });
 
   const treeDataWithSections = generateTreeDataWithReportSections(data);
-
-  const menu = (
-    <Menu onClick={handleMenuClick}>
-      <Menu.Item key="add">Thêm chỉ tiêu</Menu.Item>
-      <Menu.Item key="edit">Sửa</Menu.Item>
-      <Menu.Item key="delete">Xóa</Menu.Item>
-    </Menu>
-  );
 
   return (
     <Content style={contentStyle}>
@@ -266,110 +216,59 @@ const Donvi = () => {
         autoExpandParent={autoExpandParent}
         onExpand={onExpand}
         treeData={treeDataWithSections}
-        onRightClick={onRightClick}
       />
-      {contextMenu.visible && (
-        <div
-          style={{
-            position: 'absolute',
-            top: contextMenu.y,
-            left: contextMenu.x,
-            zIndex: 1000,
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: 4,
-            boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
-          }}
-          onMouseLeave={closeContextMenu}
-        >
-          {menu}
-        </div>
-      )}
       <Modal
-  title="Thêm tiêu chí"
-  visible={isAddModalVisible}
-  onOk={handleAddOk}
-  onCancel={() => setIsAddModalVisible(false)}
-  okText="Lưu"
-  cancelText="Hủy"
->
-  <Form form={form} layout="vertical">
-    <Form.Item
-      name="TieuChiChaID"
-      label="Tiêu cột cha"
-      rules={[{ required: true, message: 'Vui lòng chọn tiêu chí cha!' }]}
-    >
-      <Select placeholder="Chọn tiêu chí cha" style={{ width: '100%' }}>
-        {data.map(item => (
-          <Select.Option key={item.TieuChiID} value={item.TieuChiID}>
-            {item.TenTieuChi}
-          </Select.Option>
-        ))}
-      </Select>
-    </Form.Item>
-
-    <Form.Item
-      name="MaTieuChi"
-      label="Mã cột"
-      rules={[{ required: true, message: 'Vui lòng nhập mã tiêu chí!' }]}
-    >
-      <Input />
-    </Form.Item>
-
-    <Form.Item
-      name="TenTieuChi"
-      label="Tên cột"
-      rules={[{ required: true, message: 'Vui lòng nhập tên tiêu chí!' }]}
-    >
-      <Input />
-    </Form.Item>
-
-    
-
-    <Form.Item
-      name="KieuDuLieuCot"
-      label="Kiểu dữ liệu cột"
-      rules={[{ required: true, message: 'Vui lòng nhập kiểu dữ liệu cột!' }]}
-    >
-      <Select placeholder="Chọn kiểu dữ liệu cột">
-        <Select.Option value="0">Kiểu số</Select.Option>
-        <Select.Option value="1">Kiểu chữ</Select.Option>
-        <Select.Option value="2">Kiểu số thập phân</Select.Option>
-        <Select.Option value="3">Kiểu dung sai</Select.Option>
-        <Select.Option value="4">Kiểu ngày tháng</Select.Option>
-      </Select>
-    </Form.Item>
-  </Form>
-</Modal>
-      <Modal
-        title="Sửa tiêu chí"
-        visible={isEditModalVisible}
-        onOk={handleEditOk}
-        onCancel={() => setIsEditModalVisible(false)}
+        title={modalType === 'add' ? "Thêm tiêu chí" : "Sửa tiêu chí"}
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={() => setIsModalVisible(false)}
         okText="Lưu"
         cancelText="Hủy"
       >
         <Form form={form} layout="vertical">
+        <Form.Item
+  name="TieuChiChaID"
+  label="Tiêu chí cha"
+  rules={[{ required: true, message: 'Vui lòng chọn tiêu chí cha!' }]}
+>
+  <Select placeholder="Chọn tiêu chí cha">
+    {data.map((item) => (
+      <React.Fragment key={item.TieuChiID}>
+        <Select.Option value={item.TieuChiID}>
+          {item.TenTieuChi}
+        </Select.Option>
+        
+        {/* Duyệt qua children nếu có */}
+        {item.children && item.children.length > 0 &&
+          item.children.map((child) => (
+            <Select.Option key={child.TieuChiID} value={child.TieuChiID}>
+              {child.TenTieuChi}
+            </Select.Option>
+          ))}
+      </React.Fragment>
+    ))}
+  </Select>
+</Form.Item>
           <Form.Item
             name="MaTieuChi"
-            label="Mã cột"
-            rules={[{ required: true, message: 'Vui lòng nhập mã cột!' }]}
+            label="Mã tiêu chí"
+            rules={[{ required: true, message: 'Vui lòng nhập mã tiêu chí!' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="TenTieuChi"
-            label="Tên cột"
-            rules={[{ required: true, message: 'Vui lòng nhập tên cột!' }]}
+            label="Tên tiêu chí"
+            rules={[{ required: true, message: 'Vui lòng nhập tên tiêu chí!' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="KieuDuLieuCot"
-            label="Kiểu dữ liệu"
-            rules={[{ required: true, message: 'Vui lòng nhập kiểu dữ liệu!' }]}
+            label="Kiểu dữ liệu cột"
+            rules={[{ required: true, message: 'Vui lòng chọn kiểu dữ liệu cột!' }]}
           >
-            <Select placeholder="Chọn kiểu dữ liệu">
+            <Select placeholder="Chọn kiểu dữ liệu cột">
               <Select.Option value="0">Kiểu số</Select.Option>
               <Select.Option value="1">Kiểu chữ</Select.Option>
               <Select.Option value="2">Kiểu số thập phân</Select.Option>
@@ -380,9 +279,8 @@ const Donvi = () => {
           <Form.Item
             name="GhiChu"
             label="Ghi chú"
-            rules={[{ required: true, message: 'Vui lòng nhập ghi chú!' }]}
           >
-            <Input />
+            <Input.TextArea />
           </Form.Item>
         </Form>
       </Modal>

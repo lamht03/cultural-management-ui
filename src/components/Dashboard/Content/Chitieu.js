@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Input, Tree, Select, Button, Menu, Dropdown, Modal, Form, message,AutoComplete  } from 'antd';
+import { Layout, Input, Tree, Select, Button, Menu, Dropdown, Modal, Form, message } from 'antd';
 import '../../../assets/css/Nguoidung.css';
 import axiosInstance from '../../../utils/axiosInstance';
+
 const { Content } = Layout;
 const { Search } = Input;
+
 const contentStyle = {
   width: '100%',
   height: '800px',
@@ -23,7 +25,7 @@ const Donvi = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'add', 'edit', 'delete'
+  const [modalType, setModalType] = useState('');
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -120,13 +122,13 @@ const Donvi = () => {
       onOk: () => handleDelete(id),
     });
   };
+
   const handleDelete = async (id) => {
     try {
       const response = await axiosInstance.post(`/DanhMucChiTieu/Delete?id=${id}`);
       if (response.data.status === 1) {
         message.success('Deleted successfully');
-        setData(data.filter(item => item.ChiTieuID !== id));
-        window.location.reload();
+        setData(data.filter((item) => item.ChiTieuID !== id));
       } else {
         message.error(response.data.message);
       }
@@ -134,6 +136,7 @@ const Donvi = () => {
       message.error('Failed to delete');
     }
   };
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
@@ -144,12 +147,11 @@ const Donvi = () => {
           MaChiTieu: values.MaChiTieu,
           TenChiTieu: values.TenChiTieu,
           LoaiMauPhieuID: values.LoaiMauPhieuID,
-          GhiChu: values.GhiChu
+          GhiChu: values.GhiChu,
         });
         if (response.data.status === 1) {
           message.success('Updated successfully');
-          setData(data.map(item => (item.ChiTieuID === selectedItem.ChiTieuID ? response.data.data : item)));
-          window.location.reload();
+          setData(data.map((item) => (item.ChiTieuID === selectedItem.ChiTieuID ? response.data.data : item)));
         } else {
           message.error(response.data.message);
         }
@@ -163,10 +165,16 @@ const Donvi = () => {
   const handleAddOk = async () => {
     try {
       const values = await form.validateFields();
-      const response = await axiosInstance.post('/DanhMucChiTieu/Insert', values);
+      const dataToSend = {
+        MaChiTieu: values.MaChiTieu,
+        TenChiTieu: values.TenChiTieu,
+        ChiTieuChaID: values.ChiTieuChaID || 0, // Ensure ChiTieuChaID is set to 0 if not provided
+        GhiChu: values.GhiChu || "", // Ensure GhiChu is an empty string if not provided
+        LoaiMauPhieuID: values.LoaiMauPhieuID,
+      };
+      const response = await axiosInstance.post('/DanhMucChiTieu/Insert', dataToSend);
       if (response.data.status === 1) {
         message.success('Added successfully');
-        window.location.reload();
         setData([...data, response.data.data]);
       } else {
         message.error(response.data.message);
@@ -177,207 +185,148 @@ const Donvi = () => {
     }
   };
 
+  const getChiTieuChaOptions = (data) => {
+    const options = [];
+    const loop = (items) => {
+      items.forEach((item) => {
+        if (item && item.ChiTieuID && item.TenChiTieu) {
+          options.push({
+            value: item.ChiTieuID,
+            label: item.TenChiTieu,
+          });
+          if (item.children && item.children.length > 0) {
+            loop(item.children);
+          }
+        }
+      });
+    };
+    loop(data);
+    return options;
+  };
+
   const menu = (
     <Menu onClick={({ key }) => handleMenuClick(key)}>
       <Menu.Item key="add">Thêm chỉ tiêu</Menu.Item>
-      <Menu.Item key="edit" disabled={!selectedItem}>Sửa</Menu.Item>
-      <Menu.Item key="delete" disabled={!selectedItem}>Xóa</Menu.Item>
+      <Menu.Item key="edit" disabled={!selectedItem}>
+        Sửa
+      </Menu.Item>
+      <Menu.Item key="delete" disabled={!selectedItem}>
+        Xóa
+      </Menu.Item>
     </Menu>
   );
 
   const loop = (data) =>
-    data.map((item) => {
-      const index = item.TenChiTieu.toLowerCase().indexOf(searchValue.toLowerCase());
-      const beforeStr = item.TenChiTieu.substring(0, index);
-      const afterStr = item.TenChiTieu.substring(index + searchValue.length);
-      const title =
-        index > -1 ? (
-          <Dropdown overlay={menu} trigger={['contextMenu']} onVisibleChange={(flag) => flag && setSelectedItem(item)}>
-            <span>
-              {beforeStr}
-              <span style={{ color: 'red' }}>{searchValue}</span>
-              {afterStr}
-            </span>
-          </Dropdown>
-        ) : (
-          <Dropdown overlay={menu} trigger={['contextMenu']} onVisibleChange={(flag) => flag && setSelectedItem(item)}>
-            <span>{item.TenChiTieu}</span>
-          </Dropdown>
-        );
-      if (item.children) {
-        return { ...item, title, children: loop(item.children) };
-      }
-      return { ...item, title };
-    });
+    data
+      .map((item) => {
+        if (!item || !item.TenChiTieu) return null;
+
+        const index = item.TenChiTieu.toLowerCase().indexOf(searchValue.toLowerCase());
+        const beforeStr = item.TenChiTieu.substring(0, index);
+        const afterStr = item.TenChiTieu.substring(index + searchValue.length);
+        const title =
+          index > -1 ? (
+            <Dropdown overlay={menu} trigger={['contextMenu']} onVisibleChange={(flag) => flag && setSelectedItem(item)}>
+              <span>
+                {beforeStr}
+                <span style={{ color: 'red' }}>{searchValue}</span>
+                {afterStr}
+              </span>
+            </Dropdown>
+          ) : (
+            <Dropdown overlay={menu} trigger={['contextMenu']} onVisibleChange={(flag) => flag && setSelectedItem(item)}>
+              <span>{item.TenChiTieu}</span>
+            </Dropdown>
+          );
+        if (item.children && item.children.length > 0) {
+          return { ...item, title, children: loop(item.children) };
+        }
+        return { ...item, title };
+      })
+      .filter((item) => item !== null); // Filter out null values
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: 19 }}>DANH MỤC CHI TIÊU</h1>
-          <Button type="primary" onClick={showAddModal}>Thêm</Button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '20px',
+    }}
+  >
+    <h1 style={{ fontSize: 19, marginLeft: '10px' }}>DANH MỤC LOẠI DI TÍCH</h1>
+  
+     
+  </div>
+          <Button type="primary" onClick={showAddModal}>
+            Thêm chỉ tiêu
+          </Button>
+          
         </div>
-        <Search
-          placeholder="Tìm kiếm theo tên cơ quan, đơn vị"
-          onChange={(e) => onSearch(e.target.value)}
-          style={{ marginBottom: 20, width: 400 }}
-        />
-        <Select
-          placeholder="Chọn loại mẫu Phiếu"
-          style={{ width: '200px', marginBottom: 20 }}
-        >
-          {loaiMauPhieuList.map((item) => (
-            <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-              {item.TenLoaiMauPhieu}
-            </Select.Option>
-          ))}
-        </Select>
+        <Search placeholder="Tìm kiếm" onSearch={onSearch} style={{ width: 200 }} />
         <Tree
           showLine
-          defaultExpandAll
-          onExpand={onExpand}
-          treeData={loop(data)}
           expandedKeys={expandedKeys}
           autoExpandParent={autoExpandParent}
+          onExpand={onExpand}
+          treeData={loop(data)}
         />
-        {/* Add Modal */}
         <Modal
   title="Thêm chỉ tiêu"
   visible={isAddModalVisible}
   onOk={handleAddOk}
   onCancel={() => setIsAddModalVisible(false)}
-  okText="Lưu"
-  cancelText="Hủy"
 >
-  <Form form={form} layout="vertical">
-  <Form.Item
-  name="ChiTieuChaID"
-  label="Chỉ tiêu cha"
-  rules={[{ required: true, message: 'Chỉ tiêu cha là bắt buộc' }]}
->
-  <AutoComplete
-    placeholder="Chọn chỉ tiêu cha"
-    style={{ width: '100%' }}
-    options={data.map(item => ({
-      value: item.ChiTieuID,
-      label: item.TenChiTieu,
-    }))}
-  />
-</Form.Item>
-
-    <Form.Item
-      name="MaChiTieu"
-      label="Mã chỉ tiêu"
-      rules={[{ required: true, message: 'Mã chỉ tiêu là bắt buộc' }]}
-    >
+  <Form form={form} layout="vertical" name="form_add">
+    <Form.Item name="MaChiTieu" label="Mã chỉ tiêu" rules={[{ required: true }]}>
       <Input />
     </Form.Item>
-
-    <Form.Item
-      name="TenChiTieu"
-      label="Tên chỉ tiêu"
-      rules={[{ required: true, message: 'Tên chỉ tiêu là bắt buộc' }]}
-    >
+    <Form.Item name="TenChiTieu" label="Tên chỉ tiêu" rules={[{ required: true }]}>
       <Input />
     </Form.Item>
-
-    <Form.Item
-      name="LoaiMauPhieuID"
-      label="Loại mẫu phiếu"
-      rules={[{ required: true, message: 'Loại mẫu phiếu là bắt buộc' }]}
-    >
-      <Select
-        placeholder="Chọn loại mẫu phiếu"
-        style={{ width: '100%' }}
-      >
-        {loaiMauPhieuList.map(item => (
-          <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-            {item.TenLoaiMauPhieu}
-          </Select.Option>
-        ))}
-      </Select>
+    <Form.Item name="ChiTieuChaID" label="Chỉ tiêu cha">
+      <Select options={getChiTieuChaOptions(data)} />
     </Form.Item>
-
+    <Form.Item name="LoaiMauPhieuID" label="Loại mẫu phiếu" rules={[{ required: true }]}>
+      <Select options={loaiMauPhieuList.map((item) => ({ value: item.LoaiMauPhieuID, label: item.TenLoaiMauPhieu }))} />
+    </Form.Item>
     <Form.Item name="GhiChu" label="Ghi chú">
+      <Input.TextArea />
+    </Form.Item>
+  </Form>
+</Modal>
+<Modal
+  title="Chỉnh sửa chỉ tiêu"
+  visible={isModalVisible}
+  onOk={handleOk}
+  onCancel={() => setIsModalVisible(false)}
+>
+  <Form form={form} layout="vertical" name="form_edit">
+    <Form.Item name="MaChiTieu" label="Mã chỉ tiêu" rules={[{ required: true }]}>
+      <Input/>
+    </Form.Item>
+    <Form.Item name="TenChiTieu" label="Tên chỉ tiêu" rules={[{ required: true }]}>
       <Input />
+    </Form.Item>
+    <Form.Item name="ChiTieuChaID" label="Chỉ tiêu cha">
+      <Select options={getChiTieuChaOptions(data)} />
+    </Form.Item>
+    <Form.Item name="LoaiMauPhieuID" label="Loại mẫu phiếu" rules={[{ required: true }]}>
+      <Select options={loaiMauPhieuList.map((item) => ({ value: item.LoaiMauPhieuID, label: item.TenLoaiMauPhieu }))} />
+    </Form.Item>
+    <Form.Item name="GhiChu" label="Ghi chú">
+      <Input.TextArea />
     </Form.Item>
   </Form>
 </Modal>
 
-        {/* Edit Modal */}
-        <Modal
-          title="Sửa chỉ tiêu"
-          visible={isModalVisible}
-          onOk={handleOk}
-          onCancel={() => setIsModalVisible(false)}
-          okText="Lưu"
-          cancelText="Hủy"
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item name="MaChiTieu" label="Mã chỉ tiêu">
-              <Input />
-            </Form.Item>
-            <Form.Item name="TenChiTieu" label="Tên chỉ tiêu">
-              <Input />
-            </Form.Item>
-            <Select
-        placeholder="Chọn loại mẫu phiếu"
-        style={{ width: '100%' }}
-      >
-        {loaiMauPhieuList.map(item => (
-          <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-            {item.TenLoaiMauPhieu}
-          </Select.Option>
-        ))}
-      </Select>
-            <Form.Item name="GhiChu" label="Ghi chú">
-              <Input />
-            </Form.Item>
-          </Form>
-        </Modal>
-        <Modal
-          title={modalType === 'edit' ? 'Sửa chỉ tiêu' : ''}
-          visible={isModalVisible}
-          onOk={handleOk}
-          onCancel={() => setIsModalVisible(false)}
-          okText="Lưu"
-          cancelText="Hủy"
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="MaChiTieu"
-              label="Mã chỉ tiêu"
-              rules={[{ required: true, message: 'Vui lòng nhập mã chỉ tiêu!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="TenChiTieu"
-              label="Tên chỉ tiêu"
-              rules={[{ required: true, message: 'Vui lòng nhập tên chỉ tiêu!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="LoaiMauPhieuID"
-              label="Loại mẫu phiếu"
-              rules={[{ required: true, message: 'Vui lòng chọn loại mẫu phiếu!' }]}
-            >
-              <Select>
-                {loaiMauPhieuList.map((item) => (
-                  <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-                    {item.TenLoaiMauPhieu}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="GhiChu" label="Ghi chú">
-              <Input />
-            </Form.Item>
-          </Form>
-        </Modal>
+        
       </Content>
     </Layout>
   );
 };
+
 export default Donvi;
