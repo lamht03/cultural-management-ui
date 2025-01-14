@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Tree, message, Layout, Button, Menu, Dropdown, Modal, Form, Select } from 'antd';
 import axiosInstance from './../../../utils/axiosInstance';
-
 const { Content } = Layout;
 const { Search } = Input;
-
 const contentStyle = {
   width: '100%',
   textAlign: 'center',
@@ -14,7 +12,6 @@ const contentStyle = {
   borderRadius: 1,
   border: '1px solid #ccc',
 };
-
 const Donvi = () => {
   const [data, setData] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -23,11 +20,9 @@ const Donvi = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalType, setModalType] = useState(''); // 'add', 'edit', 'delete'
   const [form] = Form.useForm();
-
   useEffect(() => {
     fetchData();
   }, []);
-
   const fetchData = async () => {
     try {
       const response = await axiosInstance.get('/DanhMucTieuChi/List');
@@ -40,7 +35,6 @@ const Donvi = () => {
       message.error('Failed to fetch data');
     }
   };
-
   const onSearch = (value) => {
     const expandedKeys = [];
     const search = (data) =>
@@ -68,12 +62,10 @@ const Donvi = () => {
     setExpandedKeys(expandedKeys);
     setAutoExpandParent(true);
   };
-
   const onExpand = (expandedKeys) => {
     setExpandedKeys(expandedKeys);
     setAutoExpandParent(false);
   };
-
   const handleMenuClick = (key) => {
     if (key === 'add') {
       showAddModal();
@@ -83,7 +75,6 @@ const Donvi = () => {
       confirmDelete(selectedItem.TieuChiID);
     }
   };
-
   const showModal = (type, item) => {
     setModalType(type);
     setSelectedItem(item);
@@ -99,7 +90,6 @@ const Donvi = () => {
       });
     }
   };
-
   const showAddModal = () => {
     setModalType('add');
     setSelectedItem(null);
@@ -287,5 +277,4 @@ const Donvi = () => {
     </Content>
   );
 };
-
 export default Donvi;

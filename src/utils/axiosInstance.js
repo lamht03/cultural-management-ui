@@ -1,13 +1,12 @@
 import axios from 'axios';
 import { message } from 'antd';
-const API_URL = 'https://localhost:7024/api';
+const API_URL = 'http://192.168.100.201:2003/api';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
-
 // Biến lưu trữ trạng thái refresh token
 let isRefreshing = false;
 let refreshSubscribers = [];

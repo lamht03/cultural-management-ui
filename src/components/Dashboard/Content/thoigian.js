@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Layout, Table, Input, message, Checkbox, Modal, Form, Radio } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../utils/axiosInstance';
-
 const { Content } = Layout;
 const { Search } = Input;
-
 const contentStyle = {
   width: '100%',
   height: '800px',
@@ -15,7 +13,6 @@ const contentStyle = {
   border: '1px solid #ccc',
   padding: '20px',
 };
-
 const Nguoidung = () => {
   const [selectedMonths, setSelectedMonths] = useState([]);
   const [dataSource, setDataSource] = useState([]);
@@ -25,20 +22,16 @@ const Nguoidung = () => {
   const [modalMode, setModalMode] = useState('add');
   const [currentRecord, setCurrentRecord] = useState(null);
   const [form] = Form.useForm();
-
   const handleMonthToggle = (month) => {
     const newSelectedMonths = selectedMonths.includes(month)
       ? selectedMonths.filter((m) => m !== month) // Deselect month
       : [...selectedMonths, month]; // Select month
-
     setSelectedMonths(newSelectedMonths);
     form.setFieldsValue({ GhiChu: newSelectedMonths });
   };
-
   useEffect(() => {
     fetchData();
   }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -62,11 +55,8 @@ const Nguoidung = () => {
       setLoading(false);
     }
   };
-
   const handleNameChange = (e) => setSearchName(e.target.value);
-
   const onSearch = (value) => setSearchName(value);
-
   const openAddModal = () => {
     setModalMode('add');
     setCurrentRecord(null);
@@ -74,7 +64,6 @@ const Nguoidung = () => {
     setSelectedMonths([]);
     setIsModalVisible(true);
   };
-
   const openEditModal = (record) => {
     setModalMode('edit');
     setCurrentRecord(record);
@@ -87,22 +76,18 @@ const Nguoidung = () => {
     });
     setIsModalVisible(true);
   };
-
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-
       const payload = {
         TenKyBaoCao: values.TenKyBaoCao,
         GhiChu: selectedMonths.sort((a, b) => a - b).join(','),
         TrangThai: values.TrangThai,
       };
-
       if (modalMode === 'add') {
         const response = await axiosInstance.post('/DanhMucKyBaoCao/Insert', payload);
         if (response?.data?.status === 1) {
@@ -149,7 +134,6 @@ const Nguoidung = () => {
             const response = await axiosInstance.post(
               `/DanhMucKyBaoCao/Delete?id=${record.key}`
             );
-  
             if (response?.data?.status === 1) {
               message.success('Xóa thành công!');
               // Refresh the data
@@ -288,7 +272,6 @@ const Nguoidung = () => {
                 ))}
               </div>
             </Form.Item>
-
             <Form.Item
               name="TrangThai"
               label="Đang sử dụng"
@@ -302,8 +285,6 @@ const Nguoidung = () => {
           </Form>
         </Modal>
       </Content>
-  
   );
 };
-
 export default Nguoidung;
