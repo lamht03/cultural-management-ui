@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { message } from 'antd';
-const API_URL = 'http://192.168.100.201:2003/api';
+const API_URL = 'https://localhost:7024/api';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -83,7 +83,6 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 // Hàm lưu token vào localStorage khi đăng nhập thành công
 export const handleLoginSuccess = (newAccessToken, newRefreshToken) => {
   if (newAccessToken && newRefreshToken) {
@@ -93,5 +92,4 @@ export const handleLoginSuccess = (newAccessToken, newRefreshToken) => {
     console.error('Invalid tokens provided.');
   }
 };
-
 export default axiosInstance;
