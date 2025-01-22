@@ -69,7 +69,7 @@ const Nguoidung = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get("/DanhMucDiTichXepHang/List?pageNumber=1&pageSize=20", {
+        const response = await axiosInstance.get("v1/DanhMucDiTichXepHang/DanhSachDiTichXepHang?pageNumber=1&pageSize=20", {
           params: { pageNumber: 1, pageSize: 20 },
         });
         if (response.data && Array.isArray(response.data.Data)) {
@@ -120,7 +120,7 @@ const Nguoidung = () => {
         setLoading(true);
         try {
           // Đảm bảo rằng id là một giá trị hợp lệ trước khi thực hiện yêu cầu xóa
-          const response = await axiosInstance.post(`/DanhMucDiTichXepHang/Delete?id=${record.key}`);
+          const response = await axiosInstance.post(`v1/DanhMucDiTichXepHang/XoaDiTichXepHang?id=${record.key}`);
           if (response.data.status === 1) {
             message.success("Xóa thành công!");
             // Cập nhật lại dataSource trong state sau khi xóa
@@ -160,14 +160,14 @@ const Nguoidung = () => {
           TenDiTich: values.TenDiTich,
           GhiChu: values.GhiChu,
         };
-        response = await axiosInstance.post(`/DanhMucDiTichXepHang/Update`, payload);
+        response = await axiosInstance.post(`v1/DanhMucDiTichXepHang/CapNhatDiTichXepHang`, payload);
       } else {
         // Thêm bản ghi mới
         const payload = {
           TenDiTich: values.TenDiTich,
           GhiChu: values.GhiChu,
         };
-        response = await axiosInstance.post(`/DanhMucDiTichXepHang/Insert`, payload);
+        response = await axiosInstance.post(`v1/DanhMucDiTichXepHang/ThemDiTichXepHang`, payload);
       }
   
       // Kiểm tra kết quả phản hồi từ API

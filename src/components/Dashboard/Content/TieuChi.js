@@ -25,7 +25,7 @@ const Donvi = () => {
   }, []);
   const fetchData = async () => {
     try {
-      const response = await axiosInstance.get('/DanhMucTieuChi/List');
+      const response = await axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi');
       if (response.data.status === 1) {
         setData(response.data.data);
       } else {
@@ -109,7 +109,7 @@ const Donvi = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axiosInstance.post(`/DanhMucTieuChi/Delete?id=${id}`);
+      const response = await axiosInstance.post(`/v1/DanhMucTieuChi/XoaTieuChi?id=${id}`);
       if (response.data.status === 1) {
         message.success('Xóa thành công');
         fetchData(); // Refresh data after deletion
@@ -124,7 +124,7 @@ const Donvi = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      const apiEndpoint = modalType === 'edit' ? '/DanhMucTieuChi/Update' : '/DanhMucTieuChi/Insert';
+      const apiEndpoint = modalType === 'edit' ? 'v1/DanhMucTieuChi/CapNhatTieuChi' : '/v1/DanhMucTieuChi/ThemMoiTieuChi';
       const response = await axiosInstance.post(apiEndpoint, {
         ...values,
         TieuChiID: selectedItem ? selectedItem.TieuChiID : undefined, // Include ID only for edit

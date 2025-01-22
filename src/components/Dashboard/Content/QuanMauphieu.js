@@ -5,7 +5,6 @@ import '../../../assets/css/Nguoidung.css';
 import axiosInstance from '../../../utils/axiosInstance';
 const { Content } = Layout;
 const { Search } = Input;
-
 const Nguoidung = () => {
   const [dataSource, setDataSource] = useState([]);
   const [loaiMauPhieuList, setLoaiMauPhieuList] = useState([]);
@@ -14,19 +13,19 @@ const Nguoidung = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAddFieldModalVisible, setIsAddFieldModalVisible] = useState(false);
   const [isLastReportModalVisible, setIsLastReportModalVisible] = useState(false);
+  const [isTieuChiModalVisible, setIsTieuChiModalVisible] = useState(false);
+  const [isChiTieuModalVisible, setIsChiTieuModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [addFieldForm] = Form.useForm();
   const [addFieldValues, setAddFieldValues] = useState([]);
   const [fieldsAdded, setFieldsAdded] = useState(false);
-  
-  // Thêm state cho các phần chỉ tiêu và cuối báo cáo
+  // State for criteria and chi tieu options
   const [criteriaFields, setCriteriaFields] = useState([]);
   const [finalReportFields, setFinalReportFields] = useState([]);
-  const [finalReportFieldsAdded, setFinalReportFieldsAdded] = useState(false); // State để theo dõi trường đã thêm cho phần cuối báo cáo
-
-  // State để lưu trữ giá trị nhập vào từ phần đầu báo cáo
-  const [inputValues, setInputValues] = useState({});
-
+  const [finalReportFieldsAdded, setFinalReportFieldsAdded] = useState(false);
+  const [criteriaOptions, setCriteriaOptions] = useState([]); // Options for criteria
+  const [chiTieuOptions, setChiTieuOptions] = useState([]); // Options for chi tieu
+  const [inputValues, setInputValues] = useState({}); // State for input values
   const handleAddField = async (values) => {
     try {
       const newFields = values.fieldName.map(field => ({
@@ -42,7 +41,6 @@ const Nguoidung = () => {
       message.error('Lỗi khi thêm trường thông tin: ' + error.message);
     }
   };
-
   const handleInputChange = (index, value) => {
     setInputValues((prev) => ({
       ...prev,
@@ -57,7 +55,7 @@ const Nguoidung = () => {
         value: "",
       }));
       setFinalReportFields((prevValues) => [...prevValues, ...newFields]);
-      setFinalReportFieldsAdded(true); // Đánh dấu rằng đã có trường được thêm cho phần cuối báo cáo
+      setFinalReportFieldsAdded(true);
       message.success('Thêm trường cuối báo cáo thành công!');
       setIsLastReportModalVisible(false);
     } catch (error) {
@@ -65,10 +63,39 @@ const Nguoidung = () => {
     }
   };
 
+  // New function to handle adding criteria fields
+  const handleAddTieuChiField = async (values) => {
+    try {
+      const newFields = values.fieldName.map(field => ({
+        title: field,
+        value: "",
+      }));
+      setCriteriaFields((prevFields) => [...prevFields, ...newFields]);
+      message.success('Thêm tiêu chí thành công!');
+      setIsTieuChiModalVisible(false);
+    } catch (error) {
+      message.error('Lỗi khi thêm tiêu chí: ' + error.message);
+    }
+  };
+
+  // New function to handle adding chi tieu fields
+  const handleAddChiTieuField = async (values) => {
+    try {
+      const newFields = values.fieldName.map(field => ({
+        title: field,
+        value: "",
+      }));
+      setFinalReportFields((prevFields) => [...prevFields, ...newFields]);
+      message.success('Thêm chỉ tiêu thành công!');
+      setIsChiTieuModalVisible(false);
+    } catch (error) {
+      message.error('Lỗi khi thêm chỉ tiêu: ' + error.message);
+    }
+  };
   useEffect(() => {
     const fetchLoaiMauPhieu = async () => {
       try {
-        const response = await axiosInstance.get('/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20');
+        const response = await axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20');
         if (response.data.status === 1) {
           setLoaiMauPhieuList(response.data.data);
         } else {
@@ -99,8 +126,42 @@ const Nguoidung = () => {
       }
     };
 
+    const fetchCriteriaOptions = async () => {
+      try {
+        const response = await axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi');
+        if (response.data.status === 1) {
+          setCriteriaOptions(response.data.data.map(item => ({
+            value: item.TieuChiID,
+            label: item.TenTieuChi,
+          })));
+        } else {
+          message.error('Không thể lấy dữ liệu tiêu chí');
+        }
+      } catch (err) {
+        message.error('Lỗi khi lấy dữ liệu tiêu chí: ' + err.message);
+      }
+    };
+    const fetchChiTieuOptions = async () => {
+      try {
+        const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu');
+        if (response.data?.Status === 1 && Array.isArray(response.data.Data)) {
+          const formattedData = response.data.Data.map((item) => ({
+            value: item.ChiTieuID, // Giá trị của mỗi tùy chọn
+            label: item.TenChiTieu, // Nhãn hiển thị
+          }));
+          setChiTieuOptions(formattedData); // Lưu danh sách chỉ tiêu vào state
+        } else {
+          message.error(response.data?.Message || 'Không thể lấy dữ liệu chỉ tiêu');
+        }
+      } catch (err) {
+        message.error('Lỗi khi lấy dữ liệu: ' + err.message);
+      }
+    };
+
     fetchLoaiMauPhieu();
     fetchData();
+    fetchCriteriaOptions();
+    fetchChiTieuOptions();
   }, []);
 
   const handleAdd = async (values) => {
@@ -317,9 +378,43 @@ const Nguoidung = () => {
                 {/* Phần chỉ tiêu */}
                 <div style={{ marginBottom: "24px" }}>
                   <Card
+                    title={<span style={{ fontWeight: "bold" }}>Phần tiêu chí</span>}
+                    extra={
+                      <Button type="primary" size="small" onClick={() => setIsTieuChiModalVisible(true)}>
+                        Thêm trường
+                      </Button>
+                    }
+                    style={{
+                      border: "1px solid #d9d9d9",
+                      borderRadius: "8px",
+                      background: "#fafafa",
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                    }}
+                  >
+                    <p style={{ marginBottom: 0 }}>Các trường thông tin</p>
+                    {criteriaFields.map((field, index) => (
+                      <Form.Item
+                        key={index}
+                        label={field.title}
+                        name={`criteria-field-${index}`}
+                      >
+                        <Input
+                          onChange={(e) => {
+                            const newValues = [...criteriaFields];
+                            newValues[index].value = e.target.value;
+                            setCriteriaFields(newValues);
+                          }}
+                        />
+                      </Form.Item>
+                    ))}
+                  </Card>
+                </div>
+                {/* Phần báo cáo */}
+                <div style={{ marginBottom: "24px" }}>
+                  <Card
                     title={<span style={{ fontWeight: "bold" }}>Phần chỉ tiêu</span>}
                     extra={
-                      <Button type="primary" size="small" onClick={() => setIsLastReportModalVisible(true)}>
+                      <Button type="primary" size="small" onClick={() => setIsChiTieuModalVisible(true)}>
                         Thêm trường
                       </Button>
                     }
@@ -405,6 +500,9 @@ const Nguoidung = () => {
                 marginTop: "160px",
               }}>
                 <h5 style={{ marginLeft: "270px", fontSize: "20px " }}>MẪU PHIẾU</h5>
+                <Table
+                  // Add your table data here
+                />
               </div>
               {/* Hiển thị dữ liệu từ phần cuối báo cáo */}
               <div style={{ marginLeft: "590px" }}>
@@ -509,6 +607,76 @@ const Nguoidung = () => {
               </Select>
             </Form.Item>
           </Form>
+        </Modal>
+
+        {/* Phần tiêu chí */}
+        <Modal
+          title="Phần tiêu chí"
+          visible={isTieuChiModalVisible}
+          onCancel={() => setIsTieuChiModalVisible(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setIsTieuChiModalVisible(false)}>
+              Hủy
+            </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              onClick={() => {
+                addFieldForm
+                  .validateFields()
+                  .then((values) => {
+                    handleAddTieuChiField(values);
+                    setIsTieuChiModalVisible(false);
+                  })
+                  .catch((info) => console.log("Validation Failed:", info));
+              }}
+            >
+              Lưu
+            </Button>,
+          ]}
+        >
+          <Select
+            mode="multiple"
+            placeholder="Chọn tiêu chí"
+            allowClear
+            style={{ width: '100%' }} 
+            options={criteriaOptions} // Use the fetched criteria options
+          />
+        </Modal>
+
+        {/* Phần chỉ tiêu */}
+        <Modal
+          title="Phần chỉ tiêu"
+          visible={isChiTieuModalVisible}
+          onCancel={() => setIsChiTieuModalVisible(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setIsChiTieuModalVisible(false)}>
+              Hủy
+            </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              onClick={() => {
+                addFieldForm
+                  .validateFields()
+                  .then((values) => {
+                    handleAddChiTieuField(values);
+                    setIsChiTieuModalVisible(false);
+                  })
+                  .catch((info) => console.log("Validation Failed:", info));
+              }}
+            >
+              Lưu
+            </Button>,
+          ]}
+        >
+          <Select
+            mode="multiple"
+            placeholder="Chọn chỉ tiêu"
+            allowClear
+            style={{ width: '100%' }} 
+            options={chiTieuOptions} // Use the fetched chi tieu options
+          />
         </Modal>
       </Content>
     </Layout>

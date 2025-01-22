@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { message } from 'antd';
-const API_URL = 'https://localhost:7024/api';
+const API_URL = 'http://192.168.100.124:2003/api';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -15,7 +15,6 @@ let refreshSubscribers = [];
 const subscribeTokenRefresh = (callback) => {
   refreshSubscribers.push(callback);
 };
-
 // Gọi lại tất cả yêu cầu khi refresh token thành công
 const onRefreshed = (newAccessToken) => {
   refreshSubscribers.forEach((callback) => callback(newAccessToken));
@@ -48,7 +47,7 @@ axiosInstance.interceptors.response.use(
             throw new Error('No refresh token available');
           }
           // Gọi API refresh token
-          const refreshResponse = await axios.post(`${API_URL}/SysUsers/RefreshToken`, {
+          const refreshResponse = await axios.post(`${API_URL}/v1/NguoiDung/LamMoiToken`, {
             RefreshToken: refreshToken,
           });
 

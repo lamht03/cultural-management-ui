@@ -12,12 +12,12 @@ const Login = () => {
 
   const onFinish = async (values) => {
     setLoading(true);
-    const { userName, password } = values;
+    const { TenNguoiDung, MatKhau } = values;
 
     try {
-      const response = await axiosInstance.post(`/SysUsers/Login`, {
-        UserName: userName,
-        Password: password,
+      const response = await axiosInstance.post(`/v1/NguoiDung/DangNhap`, {
+        TenNguoiDung: TenNguoiDung,
+        MatKhau: MatKhau,
       });
 
       if (response.data.status === 1) {
@@ -64,7 +64,7 @@ const Login = () => {
             <h2>ĐĂNG NHẬP</h2>
             <Form.Item
               label="Tên đăng nhập"
-              name="userName"
+              name="TenNguoiDung"
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               rules={[{ required: true, message: 'Xin vui lòng nhập tài khoản!' }]}
@@ -73,7 +73,7 @@ const Login = () => {
             </Form.Item>
             <Form.Item
               label="Mật khẩu"
-              name="password"
+              name="MatKhau"
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}

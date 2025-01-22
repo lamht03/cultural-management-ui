@@ -72,7 +72,7 @@ const Nguoidung = () => {
     // Fetch data from the API when the component mounts
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get(`/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20`, {
+        const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
           },
@@ -102,7 +102,7 @@ const Nguoidung = () => {
     const fetchSearch = async () => {
       try {
         // Use the current searchName to make a dynamic API call
-        const response = await axiosInstance.get(`/CtgLoaiMauPhieu/List?name=${searchName}&pageNumber=1&pageSize=20`, {
+        const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?name=name=${searchName}&pageSize=20`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
           },
@@ -157,7 +157,7 @@ const Nguoidung = () => {
       if (isEditMode) {
         // Gửi API cập nhật
         response = await axiosInstance.post(
-          `/DanhMucLoaiMauPhieu/Update`,
+          `/v1/DanhMucLoaiMauPhieu/CapNhapThongTinLoaiMauPhieu`,
           { ...dataToSend, LoaiMauPhieuID: selectedRecord.key },
           {
             headers: {
@@ -168,7 +168,7 @@ const Nguoidung = () => {
       } else {
         // Gửi API thêm mới
         response = await axiosInstance.post(
-          `/DanhMucLoaiMauPhieu/Insert`,
+          `/v1/DanhMucLoaiMauPhieu/ThemMoiLoaiMauPhieu`,
           dataToSend,
           {
             headers: {
@@ -184,7 +184,7 @@ const Nguoidung = () => {
         // Gọi lại API để lấy danh sách mới nhất
         const fetchData = async () => {
           try {
-            const response = await axiosInstance.get(`/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20`, {
+            const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20`, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
               },
@@ -234,7 +234,7 @@ const Nguoidung = () => {
         return;
       }
       const response = await axiosInstance.post(
-        `/DanhMucLoaiMauPhieu/Delete`, 
+        `/v1/DanhMucLoaiMauPhieu/XoaThongTinLoaiMauPhieu`, 
         null,  
         {
           headers: {

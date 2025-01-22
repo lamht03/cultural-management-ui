@@ -17,6 +17,7 @@ const contentStyle = {
 };
 
 const Donvi = () => {
+  const [loaiMauPhieuOptions, setLoaiMauPhieuOptions] = useState([]);
   const [data, setData] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [searchValue, setSearchValue] = useState('');
@@ -27,11 +28,14 @@ const Donvi = () => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [modalType, setModalType] = useState('');
   const [form] = Form.useForm();
-
+  const handleLoaiMauPhieuChange = (value) => {
+    console.log('Selected Loại Mẫu Phiếu:', value);
+    // Handle the change based on selected value
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get('/DanhMucChiTieu/List');
+        const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu');
         if (response.data.status === 1) {
           setData(response.data.data);
         } else {
@@ -45,15 +49,19 @@ const Donvi = () => {
   }, []);
 
   useEffect(() => {
+    
     const fetchLoaiMauPhieu = async () => {
       try {
-        const response = await axiosInstance.get('/DanhMucLoaiMauPhieu/List?pageNumber=1&pageSize=20');
+        const response = await axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20');
         if (response.data.status === 1) {
+          // Store the list of LoaiMauPhieu in the component's state
           setLoaiMauPhieuList(response.data.data);
         } else {
+          // Display an error message if the response fails
           message.error('Failed to fetch LoaiMauPhieu data');
         }
       } catch (err) {
+        // Display an error message if there is an error while fetching the data
         message.error('Failed to fetch LoaiMauPhieu data: ' + err.message);
       }
     };
@@ -125,7 +133,7 @@ const Donvi = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axiosInstance.post(`/DanhMucChiTieu/Delete?id=${id}`);
+      const response = await axiosInstance.post(`/v1/DanhMucChiTieu/XoaChiTieu?id=${id}`);
       if (response.data.status === 1) {
         message.success('Deleted successfully');
         setData(data.filter((item) => item.ChiTieuID !== id));
@@ -141,7 +149,7 @@ const Donvi = () => {
     try {
       const values = await form.validateFields();
       if (modalType === 'edit' && selectedItem) {
-        const response = await axiosInstance.post('/DanhMucChiTieu/Update', {
+        const response = await axiosInstance.post('/v1/DanhMucChiTieu/CapNhatThongTinChiTieu', {
           ChiTieuID: selectedItem.ChiTieuID,
           ChiTieuChaID: values.ChiTieuChaID,
           MaChiTieu: values.MaChiTieu,
@@ -172,7 +180,7 @@ const Donvi = () => {
         GhiChu: values.GhiChu || "", // Ensure GhiChu is an empty string if not provided
         LoaiMauPhieuID: values.LoaiMauPhieuID,
       };
-      const response = await axiosInstance.post('/DanhMucChiTieu/Insert', dataToSend);
+      const response = await axiosInstance.post('/v1/DanhMucChiTieu/ThemMoiChiTieu', dataToSend);
       if (response.data.status === 1) {
         message.success('Added successfully');
         setData([...data, response.data.data]);
@@ -267,6 +275,7 @@ const Donvi = () => {
           
         </div>
         <Search placeholder="Tìm kiếm" onSearch={onSearch} style={{ width: 200 }} />
+        <Select style={{ width: 200 }} options={loaiMauPhieuList.map((item) => ({ value: item.LoaiMauPhieuID, label: item.TenLoaiMauPhieu }))} />
         <Tree
           showLine
           expandedKeys={expandedKeys}
