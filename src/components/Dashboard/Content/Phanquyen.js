@@ -29,15 +29,15 @@ const Nguoidung = () => {
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/PermissionManagement/GetAllGroup?pageNumber=1&pageSize=20', {
+      const response = await axiosInstance.get('/v1/PhanQuyen/DanhSachNhomPhanQuyen?pageNumber=1&pageSize=20', {
         params: { pageNumber: 1, pageSize: 20 },
       });
       if (response.data.Status === 1) {
         const formattedData = response.data.Data.map((item, index) => ({
-          key: item.GroupID,
+          key: item.NhomPhanQuyenID,
           stt: index + 1,
-          hoTen: item.GroupName,
-          tenTaiKhoan: item.Description,
+          hoTen: item.TenNhomPhanQuyen,
+          tenTaiKhoan: item.MoTa,
         }));
         setDataSource(formattedData);
       } else {
@@ -94,37 +94,44 @@ const Nguoidung = () => {
   // Add or Edit Group
   const handleOk = async () => {
     try {
+      // Validate form fields
       const values = await form.validateFields();
+      
       if (editRecord) {
         // Update group
-        await axiosInstance.post('/PermissionManagement/UpdateGroup', {
-          GroupID: editRecord.key,
-          GroupName: values.GroupName,
-          Description: values.Description,
-        });
+        const payload = {
+          NhomPhanQuyenID: editRecord.key, // Existing group ID
+          TenNhomPhanQuyen: values.GroupName, // Group name
+          MoTa: values.Description, // Description
+        };
+        
+        await axiosInstance.post('/v1/PhanQuyen/CapNhatNhomPhanQuyen', payload);
         message.success('Group updated successfully.');
       } else {
         // Add group
-        await axiosInstance.post('/PermissionManagement/CreateGroup', {
-          GroupID: 0,
-          GroupName: values.GroupName,
-          Description: values.Description,
-        });
+        const payload = {
+          TenNhomPhanQuyen: values.GroupName, // Group name
+          MoTa: values.Description, // Description
+        };
+        
+        await axiosInstance.post('/v1/PhanQuyen/ThemMoiNhomPhanQuyen', payload);
         message.success('Group added successfully.');
       }
-      fetchGroups(); // Refresh data
+      
+      fetchGroups(); // Refresh group data
       handleCancel(); // Close modal
     } catch (error) {
       message.error('Error while saving the group.');
       console.error(error);
     }
   };
+  
 
   // Delete a group
   const handleDelete = async (groupId) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post(`/PermissionManagement/DeleteGroup?groupId=${groupId}`);
+      const response = await axiosInstance.post(`/v1/PhanQuyen/XoaNhomPhanQuyen?NhomPhanQuyenID=${groupId}`);
       if (response.data.Status === 1) {
         message.success('Group deleted successfully.');
         fetchGroups(); // Refresh data
@@ -376,14 +383,14 @@ const Nguoidung = () => {
             >
               <Form form={form} layout="vertical">
                 <Form.Item
-                  name="GroupName"
+                  name="TenNhomPhanQuyen"
                   label="Tên nhóm"
                   rules={[{ required: true, message: 'Vui lòng nhập tên nhóm!' }]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
-                  name="Description"
+                  name="MoTa"
                   label="Ghi chú"
                   rules={[{ required: true, message: 'Vui lòng nhập ghi chú!' }]}
                 >

@@ -92,6 +92,7 @@ const Nguoidung = () => {
       message.error('Lỗi khi thêm chỉ tiêu: ' + error.message);
     }
   };
+
   useEffect(() => {
     const fetchLoaiMauPhieu = async () => {
       try {
@@ -105,7 +106,6 @@ const Nguoidung = () => {
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
-
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20');
@@ -144,8 +144,8 @@ const Nguoidung = () => {
     const fetchChiTieuOptions = async () => {
       try {
         const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu');
-        if (response.data?.Status === 1 && Array.isArray(response.data.Data)) {
-          const formattedData = response.data.Data.map((item) => ({
+        if (response.data?.status === 1 && Array.isArray(response.data?.data)) {
+          const formattedData = response.data.data.map((item) => ({
             value: item.ChiTieuID, // Giá trị của mỗi tùy chọn
             label: item.TenChiTieu, // Nhãn hiển thị
           }));
@@ -644,40 +644,40 @@ const Nguoidung = () => {
           />
         </Modal>
 
-        {/* Phần chỉ tiêu */}
+        {/*  Modal Phần chỉ tiêu */}
         <Modal
-          title="Phần chỉ tiêu"
-          visible={isChiTieuModalVisible}
-          onCancel={() => setIsChiTieuModalVisible(false)}
-          footer={[
-            <Button key="cancel" onClick={() => setIsChiTieuModalVisible(false)}>
-              Hủy
-            </Button>,
-            <Button
-              key="submit"
-              type="primary"
-              onClick={() => {
-                addFieldForm
-                  .validateFields()
-                  .then((values) => {
-                    handleAddChiTieuField(values);
-                    setIsChiTieuModalVisible(false);
-                  })
-                  .catch((info) => console.log("Validation Failed:", info));
-              }}
-            >
-              Lưu
-            </Button>,
-          ]}
-        >
-          <Select
-            mode="multiple"
-            placeholder="Chọn chỉ tiêu"
-            allowClear
-            style={{ width: '100%' }} 
-            options={chiTieuOptions} // Use the fetched chi tieu options
-          />
-        </Modal>
+        title="Phần chỉ tiêu"
+        visible={isChiTieuModalVisible}
+        onCancel={() => setIsChiTieuModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsChiTieuModalVisible(false)}>
+            Hủy
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={() => {
+              addFieldForm
+                .validateFields()
+                .then((values) => {
+                  handleAddChiTieuField(values);
+                  setIsChiTieuModalVisible(false);
+                })
+                .catch((info) => console.log("Validation Failed:", info));
+            }}
+          >
+            Lưu
+          </Button>,
+        ]}
+      >
+        <Select
+          mode="multiple"
+          placeholder="Chọn chỉ tiêu"
+          allowClear
+          style={{ width: '100%' }} 
+          options={chiTieuOptions} // Sử dụng các tùy chọn đã lấy
+        />
+      </Modal>
       </Content>
     </Layout>
   );
