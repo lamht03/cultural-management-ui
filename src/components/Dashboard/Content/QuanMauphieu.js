@@ -47,7 +47,6 @@ const Nguoidung = () => {
       [`field-${index}`]: value,
     }));
   };
-
   const handleAddFinalReportField = async (values) => {
     try {
       const newFields = values.fieldName.map(field => ({
@@ -62,7 +61,6 @@ const Nguoidung = () => {
       message.error('Lỗi khi thêm trường cuối báo cáo: ' + error.message);
     }
   };
-
   // New function to handle adding criteria fields
   const handleAddTieuChiField = async (values) => {
     try {
@@ -77,7 +75,6 @@ const Nguoidung = () => {
       message.error('Lỗi khi thêm tiêu chí: ' + error.message);
     }
   };
-
   // New function to handle adding chi tieu fields
   const handleAddChiTieuField = async (values) => {
     try {
@@ -92,7 +89,6 @@ const Nguoidung = () => {
       message.error('Lỗi khi thêm chỉ tiêu: ' + error.message);
     }
   };
-
   useEffect(() => {
     const fetchLoaiMauPhieu = async () => {
       try {
@@ -125,7 +121,6 @@ const Nguoidung = () => {
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
-
     const fetchCriteriaOptions = async () => {
       try {
         const response = await axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi');
@@ -185,7 +180,6 @@ const Nguoidung = () => {
       message.error('Lỗi khi thêm mới: ' + error.response?.data?.message || error.message);
     }
   };
-
   const handleDelete = async (id) => {
     Modal.confirm({
       title: 'Xóa dữ liệu',
@@ -207,12 +201,10 @@ const Nguoidung = () => {
       },
     });
   };
-
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
   };
-
   const columns = [
     { title: 'STT', dataIndex: 'stt', key: 'stt', align: 'center' },
     { title: 'Tên mẫu phiếu', dataIndex: 'TenMauPhieu', key: 'TenMauPhieu', align: 'left' },
@@ -560,7 +552,6 @@ const Nguoidung = () => {
             </Form.Item>
           </Form>
         </Modal>
-
         {/* Phần cuối báo cáo */}
         <Modal
           title="Thêm trường thông tin"
@@ -608,7 +599,6 @@ const Nguoidung = () => {
             </Form.Item>
           </Form>
         </Modal>
-
         {/* Phần tiêu chí */}
         <Modal
           title="Phần tiêu chí"
@@ -643,7 +633,6 @@ const Nguoidung = () => {
             options={criteriaOptions} // Use the fetched criteria options
           />
         </Modal>
-
         {/*  Modal Phần chỉ tiêu */}
         <Modal
         title="Phần chỉ tiêu"
@@ -682,5 +671,4 @@ const Nguoidung = () => {
     </Layout>
   );
 };
-
 export default Nguoidung;
