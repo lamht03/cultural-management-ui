@@ -16,6 +16,8 @@ const contentStyle = {
   padding: '20px',
 };
 const Nguoidung = () => {
+  const [usersData, setUsersData] = useState([]);
+  const [permissionsData, setPermissionsData] = useState([]);
   const [searchName, setSearchName] = useState('');
   const [dataSource, setDataSource] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -145,14 +147,48 @@ const Nguoidung = () => {
       setLoading(false);
     }
   };
-
+  
   const handleNameChange = (e) => setSearchName(e.target.value);
   const onSearch = (value) => setSearchName(value);
 
   const filteredData = dataSource.filter((item) =>
     item.hoTen.toLowerCase().includes(searchName.toLowerCase())
   );
-
+  
+  
+  const handleSettingsClick = async (record) => {
+    setLoading(true); // Start loading
+    const nhomPhanQuyenID = record.key; // Get the ID from the record
+  
+    try {
+      // Call both APIs concurrently
+      const [usersResponse, permissionsResponse] = await Promise.all([
+        axiosInstance.get(`/v1/PhanQuyen/LayDanhSachNguoiDungTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`),
+        axiosInstance.get(`/v1/PhanQuyen/LayDanhSachChucNangTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`)
+      ]);
+  
+      // Check users response
+      if (usersResponse.data.status === 1) {
+        setUsersData(usersResponse.data.data); // Set users data
+      } else {
+        message.error('Failed to fetch users data.');
+      }
+  
+      // Check permissions response
+      if (permissionsResponse.data.status === 1) {
+        setPermissionsData(permissionsResponse.data.data); // Set permissions data
+      } else {
+        message.error('Failed to fetch permissions data.');
+      }
+  
+      setShowSettings(true); // Show the settings section
+    } catch (error) {
+      message.error('Error while fetching data.');
+      console.error(error);
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  };
   const columns = [
     { title: 'STT', dataIndex: 'stt', key: 'stt', align: 'center' },
     { title: 'Tên nhóm người dùng', dataIndex: 'hoTen', key: 'hoTen', align: 'left' },
@@ -163,10 +199,9 @@ const Nguoidung = () => {
       align: 'center',
       render: (_, record) => (
         <span>
-          <Button type="link" onClick={() => setShowSettings(true)} // Open settings
-            style={{ color: "black", fontSize: "20px" }}>
-            <SettingOutlined />
-          </Button>
+          <Button type="link" onClick={() => handleSettingsClick(record)} style={{ color: "black", fontSize: "20px" }}>
+  <SettingOutlined />
+</Button>
           <Button type="link" onClick={() => showModal(record)}
             style={{ color: "black", fontSize: "20px" }}>
             <EditOutlined />
@@ -268,146 +303,56 @@ const Nguoidung = () => {
                 />
               </div>
               <div style={{ display: 'flex', gap: '10px', backgroundColor: '#fff', color: '#000', marginTop: '20px', width: '100%', height: '300px', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f0f0f0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm người dùng</h3>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddUserModal}>
-                      Thêm
-                    </Button>
-                  </div>
-                  <span style={{ marginTop: '10px' }}>
-                    <CloseOutlined style={{ marginRight: '5px' }} />
-                    tranviethung (Trần Việt Hưng - Sở Văn Hóa và Thể Thao)
-                  </span>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f0f0f0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm người dùng</h3>
+                <Button type="primary" icon={<PlusOutlined />} onClick={showAddUserModal}>
+                  Thêm
+                </Button>
+              </div>
+              {/* Render user data here */}
+              <div style={{ marginTop: '10px' }}>
+  {usersData.length > 0 ? (
+    usersData.map(user => (
+      <span key={user.NguoiDungID} style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+        <CloseOutlined style={{ marginRight: '5px' }} />
+        {user.TenNguoiDung} {/* Display the TenNguoiDung property */}
+      </span>
+    ))
+  ) : (
+    <span>Không có người dùng nào.</span> // Message when no users are found
+  )}
+</div>
+            </div>
                 {/* Hàng thứ hai */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#e0e0e0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm chức năng cho nhóm</h3>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
-                      Thêm
-                    </Button>
-                  </div>
-                  <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <ul style={{ flex: 1 }}>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
-                        <span>Quản lý người dùng</span>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <Checkbox>Xem</Checkbox>
-                          <Checkbox>Thêm</Checkbox>
-                          <Checkbox>Sửa</Checkbox>
-                          <Checkbox>Xóa</Checkbox>
-                          <CloseOutlined />
-                        </div>
-                      </li>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
-                        <span>Quản lý nhóm</span>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <Checkbox>Xem</Checkbox>
-                          <Checkbox>Thêm</Checkbox>
-                          <Checkbox>Sửa</Checkbox>
-                          <Checkbox>Xóa</Checkbox>
-                          <CloseOutlined />
-                        </div>
-                      </li>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
-                        <span>Quản lý phân quyền</span>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <Checkbox>Xem</Checkbox>
-                          <Checkbox>Thêm</Checkbox>
-                          <Checkbox>Sửa</Checkbox>
-                          <Checkbox>Xóa</Checkbox>
-                          <CloseOutlined />
-                        </div>
-                      </li>
-                      <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',marginLeft: '-40px' }}>
-                        <span>Quản lý báo cáo</span>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <Checkbox>Xem</Checkbox>
-                          <Checkbox>Thêm</Checkbox>
-                          <Checkbox>Sửa</Checkbox>
-                          <Checkbox>Xóa</Checkbox>
-                          <CloseOutlined />
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <Modal
-              title="Thêm chức năng cho nhóm"
-              visible={isAddFunctionModalVisible}
-              onOk={handleAddFunctionCancel}
-              onCancel={handleAddFunctionCancel}
-              okText="Lưu"
-              cancelText="Hủy"
-            >
-              <Form layout="vertical">
-                <Form.Item label="Chọn chức năng">
-                  <Select placeholder="Chọn chức năng">
-                    <Option value="chucnang1">Chức năng 1</Option>
-                    <Option value="chucnang2">Chức năng 2</Option>
-                  </Select>
-                </Form.Item>
-              </Form>
-            </Modal>
-            <Modal
-              title="Thêm người dùng vào nhóm"
-              visible={isAddUserModalVisible}
-              onOk={handleAddUserCancel}
-              onCancel={handleAddUserCancel}
-              okText="Lưu"
-              cancelText="Hủy"
-            >
-              <Form layout="vertical">
-                <Form.Item label="Chọn cơ quan">
-                  <Select placeholder="Chọn cơ quan">
-                    <Option value="coquan1">Cơ quan 1</Option>
-                    <Option value="coquan2">Cơ quan 2</Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item label="Chọn người dùng">
-                  <Select placeholder="Chọn người dùng">
-                    <Option value="user1">Người dùng 1</Option>
-                    <Option value="user2">Người dùng 2</Option>
-                  </Select>
-                </Form.Item>
-              </Form>
-            </Modal>
-            <Modal
-              title={editRecord ? 'Chỉnh sửa nhóm' : 'Thêm nhóm'}
-              visible={isModalVisible}
-              onOk={handleOk}
-              onCancel={handleCancel}
-              okText="Lưu"
-              cancelText="Hủy"
-            >
-              <Form form={form} layout="vertical">
-                <Form.Item
-                  name="TenNhomPhanQuyen"
-                  label="Tên nhóm"
-                  rules={[{ required: true, message: 'Vui lòng nhập tên nhóm!' }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  name="MoTa"
-                  label="Ghi chú"
-                  rules={[{ required: true, message: 'Vui lòng nhập ghi chú!' }]}
-                >
-                  <Input />
-                </Form.Item>
-              </Form>
-            </Modal>
-                </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm chức năng cho nhóm</h3>
+    <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
+      Thêm
+    </Button>
+  </div>
+  <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
+  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+    <ul style={{ flex: 1 }}>
+      {permissionsData.map(permission => (
+        <li key={permission.ChucNangID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: '-40px' }}>
+          <span>{permission.TenChucNang}</span>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Checkbox checked={permission.Xem}>Xem</Checkbox>
+            <Checkbox checked={permission.Them}>Thêm</Checkbox>
+            <Checkbox checked={permission.Sua}>Sửa</Checkbox>
+            <Checkbox checked={permission.Xoa}>Xóa</Checkbox>
+            <CloseOutlined />
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
               </div>
             </div>
-            <Table
-              className="custom-table"
-              dataSource={filteredData}
-              columns={columns}
-              pagination={{ pageSize: 5 }}
-              loading={loading}
-            />
+            
           </>
         )}
       </Content>
