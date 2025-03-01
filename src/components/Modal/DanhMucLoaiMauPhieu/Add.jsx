@@ -16,18 +16,15 @@ const AddEditModal = ({ isVisible, onCancel, onFinish, initialValues, modalMode 
       form.resetFields(); // Reset fields when switching between add and edit modes
     }
   }, [initialValues, modalMode, form]);
-
   const handleFinish = (values) => {
     // Convert GhiChu back to a year string if it's a moment object
     if (values.GhiChu) {
       values.GhiChu = values.GhiChu.format('YYYY');
     }
-
     // Ensure correct ID is set for edit mode
     if (modalMode === 'edit' && initialValues?.LoaiMauPhieuID) {
       values.LoaiMauPhieuID = initialValues.LoaiMauPhieuID;
     }
-
     // Check if onFinish is a function before calling
     if (typeof onFinish === 'function') {
       onFinish(values); // Call onFinish with form values

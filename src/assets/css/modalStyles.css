@@ -1,0 +1,52 @@
+/* modalStyles.css */
+.custom-modal {
+  background-color: #ffffff; /* White background */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  padding: 20px; /* Padding inside the modal */
+}
+
+.custom-modal-header {
+  background-color: #007bff; /* Blue background for header */
+  color: white; /* White text */
+  padding: 15px; /* Padding for header */
+  border-radius: 8px 8px 0 0; /* Rounded corners for header */
+  display: flex;
+  justify-content: space-between; /* Space between title and close button */
+  align-items: center; /* Center items vertically */
+}
+
+.custom-modal-title {
+  font-size: 1.5rem; /* Larger font size for title */
+  font-weight: bold; /* Bold title */
+}
+
+.custom-modal-content {
+  padding: 20px; /* Padding for content */
+}
+
+.custom-modal-footer {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  padding: 10px 0; /* Padding for footer */
+}
+
+.custom-modal-button {
+  background-color: #007bff; /* Blue button */
+  color: white; /* White text */
+  border: none; /* No border */
+  border-radius: 4px; /* Rounded corners */
+  padding: 10px 15px; /* Padding for button */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Smooth transition */
+}
+
+.custom-modal-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.custom-modal-cancel-button {
+  background-color: #f0f0f0; /* Light gray for cancel button */
+  color: #333; /* Dark text */
+  margin-right: 10px; /* Space between buttons */
+}

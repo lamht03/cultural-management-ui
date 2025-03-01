@@ -259,7 +259,7 @@ const Donvi = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h1 style={{ fontSize: 19, marginLeft: '10px' }}>DANH MỤC LOẠI DI TÍCH</h1>
+          <h1 style={{ fontSize: 19, marginLeft: '10px' }}>DANH MỤC CHI TIÊU         </h1>
           <Button type="primary" onClick={() => showAddModal(null)}>
             Thêm chỉ tiêu
           </Button>

@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "antd": "^5.22.2",
+    "antd": "^5.23.4",
     "axios": "^1.7.8",
     "dayjs": "^1.11.13",
     "jwt-decode": "^4.0.0",

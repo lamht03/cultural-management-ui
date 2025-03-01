@@ -1,8 +1,7 @@
-// Sider.js
 import React, { useState, useEffect } from 'react';
 import { Layout } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import MenuComponent from '../../Menu/Menu.Sider.js'; // Import MenuComponent từ Menu.js
+import MenuComponent from '../../Menu/Menu.Sider.jsx'; // Import MenuComponent từ Menu.js
 const { Sider } = Layout;
 const menuItems = [
   {
@@ -14,7 +13,7 @@ const menuItems = [
       { key: 'thamSoHeThong', label: 'Quản lý truy cập, tham số', path: '/dashboard/tham-so-he-thong' },
       { key: 'nhatKyHeThong', label: 'Nhật ký sử dụng', path: '/dashboard/nhat-ky-he-thong' },
       { key: 'saoLuuDuLieu', label: 'Sao lưu, phục hồi dữ liệu', path: '' },
-      { key: 'taiLieuHuongDan', label: 'Quản lý hướng dẫn sử dụng', path: '/dashboard/tai-lieu-huong-dan' },
+      { key: 'quanlyhuongdansudung', label: 'Quản lý hướng dẫn sử dụng', path: '/dashboard/tai-lieu-huong-dan' },
       { key: 'cauHinhDangNhap', label: 'Cấu hình đăng nhập hệ thống', path: '' },
     ],
   },
@@ -117,5 +116,4 @@ const SiderMenu = () => {
     </Sider>
   );
 };
-
 export default SiderMenu;

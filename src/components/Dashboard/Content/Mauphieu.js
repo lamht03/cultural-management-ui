@@ -4,10 +4,8 @@ import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import AddEditModal from '../../Modal/DanhMucLoaiMauPhieu/Add';
 import axiosInstance from '../../../utils/axiosInstance';
 import '../../../assets/css/Nguoidung.css';
-
 const { Content } = Layout;
 const { Search } = Input;
-
 const columns = (onEdit, onDelete) => [
   {
     title: 'STT',
@@ -47,7 +45,6 @@ const columns = (onEdit, onDelete) => [
     ),
   },
 ];
-
 const contentStyle = {
   width: '100%',
   height: '800px',
@@ -58,7 +55,6 @@ const contentStyle = {
   padding: '20px',
   textAlign: 'center',
 };
-
 const Nguoidung = () => {
   const [searchName, setSearchName] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,85 +62,51 @@ const Nguoidung = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [dataSource, setDataSource] = useState([]); // Start with an empty array
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false); // State for delete modal
-  
-
-  useEffect(() => {
-    // Fetch data from the API when the component mounts
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
-          },
-        });
-
-        if (response.data && response.data.status === 1 && response.data.data) {
-          const formattedData = response.data.data.map((item, index) => ({
-            key: item.LoaiMauPhieuID,
-            stt: index + 1,
-            TenLoaiMauPhieu: item.TenLoaiMauPhieu || '',
-            MaLoaiMauPhieu: item.MaLoaiMauPhieu || '',
-            TrangThai: item.TrangThai,
-            GhiChu: item.GhiChu,
-          }));
-          setDataSource(formattedData);  // Update state
-        } else {
-          message.error('Không thể lấy dữ liệu hợp lệ từ máy chủ');
-        }
-      } catch (error) {
-        message.error('Đã xảy ra lỗi khi lấy dữ liệu từ máy chủ');
+  const [selectedYear, setSelectedYear] = useState(null); // State for selected year
+  const fetchData = async (year = null, name = '') => {
+    try {
+      const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
+        },
+        params: {
+          pageNumber: 1,
+          pageSize: 20,
+          note: year, // Include the year as a query parameter
+          name: name, // Include the name as a query parameter
+        },
+      });
+      if (response.data && response.data.status === 1 && response.data.data) {
+        const formattedData = response.data.data.map((item, index) => ({
+          key: item.LoaiMauPhieuID,
+          stt: index + 1,
+          TenLoaiMauPhieu: item.TenLoaiMauPhieu || '',
+          MaLoaiMauPhieu: item.MaLoaiMauPhieu || '',
+          TrangThai: item.TrangThai,
+          GhiChu: item.GhiChu,
+        }));
+        setDataSource(formattedData);  // Update state
+      } else {
+        message.error('Không thể lấy dữ liệu hợp lệ từ máy chủ');
       }
-    };
-    fetchData();
-  }, []); 
-
-  useEffect(() => {
-    const fetchSearch = async () => {
-      try {
-        // Use the current searchName to make a dynamic API call
-        const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?name=name=${searchName}&pageSize=20`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
-          },
-        });
-        if (response.data && response.data.status === 1 && response.data.data) {
-          const formattedData = response.data.data.map((item, index) => ({
-            key: item.LoaiMauPhieuID,
-            stt: index + 1,
-            TenLoaiMauPhieu: item.TenLoaiMauPhieu || '',
-            MaLoaiMauPhieu: item.MaLoaiMauPhieu || '',
-            TrangThai: item.TrangThai,
-            GhiChu: item.GhiChu,
-          }));
-          setDataSource(formattedData); // Update state
-        } else {
-          
-        }
-      } catch (error) {
-        
-      }
-    };
-  
-    // Only run fetchSearch when searchName changes
-    if (searchName) {
-      fetchSearch();
+    } catch (error) {
+      message.error('Đã xảy ra lỗi khi lấy dữ liệu từ máy chủ');
     }
-  }, [searchName]);
-
+  };
+  useEffect(() => {
+    fetchData(selectedYear, searchName);
+  }, [selectedYear, searchName]);
   const handleNameChange = (e) => {
     setSearchName(e.target.value);
   };
-
   const handleOpenModal = (record = null) => {
     setSelectedRecord(record);
     setIsEditMode(!!record);
     setIsModalOpen(true);
   };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-
   const handleSave = async (values) => {
     try {
       const dataToSend = {
@@ -152,7 +114,6 @@ const Nguoidung = () => {
         MaLoaiMauPhieu: values.MaLoaiMauPhieu,
         GhiChu: values.GhiChu,
       };
-  
       let response;
       if (isEditMode) {
         // Gửi API cập nhật
@@ -177,38 +138,11 @@ const Nguoidung = () => {
           }
         );
       }
-  
       if (response.data.status === 1) {
         message.success(isEditMode ? 'Cập nhật thành công!' : 'Đã thêm thành công!');
-  
+
         // Gọi lại API để lấy danh sách mới nhất
-        const fetchData = async () => {
-          try {
-            const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-              },
-            });
-  
-            if (response.data && response.data.status === 1 && response.data.data) {
-              const formattedData = response.data.data.map((item, index) => ({
-                key: item.LoaiMauPhieuID,
-                stt: index + 1,
-                TenLoaiMauPhieu: item.TenLoaiMauPhieu || '',
-                MaLoaiMauPhieu: item.MaLoaiMauPhieu || '',
-                TrangThai: item.TrangThai,
-                GhiChu: item.GhiChu,
-              }));
-              setDataSource(formattedData);
-            } else {
-              message.error('Không thể lấy dữ liệu hợp lệ từ máy chủ');
-            }
-          } catch (error) {
-            message.error('Đã xảy ra lỗi khi lấy dữ liệu từ máy chủ');
-          }
-        };
-  
-        await fetchData(); // Cập nhật bảng với dữ liệu mới
+        await fetchData(selectedYear, searchName); // Cập nhật bảng với dữ liệu mới
         setIsModalOpen(false); // Đóng modal
       } else {
         message.error('Có lỗi xảy ra, vui lòng thử lại!');
@@ -218,30 +152,27 @@ const Nguoidung = () => {
       message.error('Đã xảy ra lỗi trong quá trình lưu.');
     }
   };
-  
-
   const handleDelete = (record) => {
     setSelectedRecord(record);
     setIsDeleteModalVisible(true);
   };
-
   const handleDeleteOk = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      console.log('Token for delete:', token); 
+      console.log('Token for delete:', token);
       if (!token) {
         message.error('Token không hợp lệ hoặc đã hết hạn.');
         return;
       }
       const response = await axiosInstance.post(
-        `/v1/DanhMucLoaiMauPhieu/XoaThongTinLoaiMauPhieu`, 
-        null,  
+        `/v1/DanhMucLoaiMauPhieu/XoaThongTinLoaiMauPhieu`,
+        null,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
           params: {
-            id: selectedRecord.key, 
+            id: selectedRecord.key,
           },
         }
       );
@@ -258,44 +189,42 @@ const Nguoidung = () => {
       setIsDeleteModalVisible(false);
     }
   };
-
   const handleDeleteCancel = () => {
     setIsDeleteModalVisible(false);
   };
-
+  const handleYearChange = (date, dateString) => {
+    setSelectedYear(dateString);
+  };
   const filteredData = dataSource.filter(item =>
     item?.TenLoaiMauPhieu?.toLowerCase().includes(searchName.toLowerCase())
   );
-
   return (
     <Content style={contentStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        
-        <h1 style={{ fontSize: 19,marginLeft: 15 }}>DANH MỤC LOẠI MẪU PHIẾU</h1>
-        
+        <h1 style={{ fontSize: 19, marginLeft: 15 }}>DANH MỤC LOẠI MẪU PHIẾU</h1>
         <Button type="primary" onClick={() => handleOpenModal()}>Thêm mới</Button>
       </div>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-          <DatePicker onChange={(date, dateString) => console.log(date, dateString)} picker="year" />
-          <Search
-            placeholder="Tìm kiếm theo tên"
-            allowClear
-            value={searchName}
-            onSearch={() => setSearchName('')}
-            onChange={handleNameChange}
-            style={{
-              width: 200,
-            }}
-          />
-        </div>
+        <DatePicker onChange={handleYearChange} picker="year" />
+        <Search
+          placeholder="Tìm kiếm theo tên"
+          allowClear
+          value={searchName}
+          onSearch={() => setSearchName('')}
+          onChange={handleNameChange}
+          style={{
+            width: 200,
+          }}
+        />
+      </div>
       <Table
         className="custom-table"
         columns={columns(handleOpenModal, handleDelete)}
         dataSource={filteredData}
         pagination={{
-          pageSize: 5,  
+          pageSize: 5,
           onChange: (page, pageSize) => {
-            console.log('Page:', page, 'PageSize:', pageSize); 
+            console.log('Page:', page, 'PageSize:', pageSize);
           },
         }}
         rowClassName="editable-row"
@@ -320,5 +249,4 @@ const Nguoidung = () => {
     </Content>
   );
 };
-
 export default Nguoidung;

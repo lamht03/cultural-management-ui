@@ -6,7 +6,7 @@ import './App.css';
 
 // Helper functions to check authentication status
 const isAuthenticated = () => {
-  return !!localStorage.getItem('accessToken'); // Check if accessToken exists
+  return !!localStorage.getItem('token'); // Check if accessToken exists
 };
 
 // PrivateRoute for protected routes

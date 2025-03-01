@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout } from 'antd';
-import { useLocation } from 'react-router-dom'; // Import Link for navigation
+import { useLocation } from 'react-router-dom'; 
 import CustomHeader from '../../components/Dashboard/Header/Header';
 import CustomFooter from '../../components/Dashboard/Footer/Footer';
 import CustomSider from '../../components/Dashboard/Sider/Sider';
@@ -98,7 +98,6 @@ const Dashboard = () => {
         case '/dashboard/danh-muc-di-san-tu-lieu': // Case for Chitieu
         return <Tulieu />;
         case '/dashboard/di-san-van-hoa-phi-vat-the': // Case for Chitieu
-        // 
         // QUẢN LÝ DANH MỤC DI SẢN VĂN HÓA PHI VẬT THỂ
         return <Vatthe />;
         // Danh Mục Loại Mẫu Phiếu
@@ -107,7 +106,6 @@ const Dashboard = () => {
         case '/dashboard/mau-phieu': 
       // Quản Lý Mẫu Phiếu
         return <QuanMauphieu />;
-
         case '/dashboard/cap-nhap-bieu-mau-du-lieu': 
         //CẬP NHẬT BIỂU MẪU SỐ LIỆU
         return <Solieu />;
@@ -172,7 +170,6 @@ const Dashboard = () => {
         // CẬP NHẬT PHONG TRÀO
         return <Phongtrao />;
         case '/dashboard/danh-muc-don-vi-tinh':
-          // 
         return <Donvitinh/>
       default:
         return <CustomContent />;

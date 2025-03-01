@@ -150,21 +150,28 @@ const Donvi = () => {
   );
 
   const generateTreeDataWithReportSections = (data) => {
+    // Lọc dữ liệu theo LoaiTieuChi
+    const headData = data.filter(item => item.LoaiTieuChi === 1);
+    const bodyData = data.filter(item => item.LoaiTieuChi === 2);
+    const tailData = data.filter(item => item.LoaiTieuChi === 3);
+  
+    // Tạo các node với dữ liệu đã lọc
     const headNode = {
       title: <strong style={{ fontSize: '18px', color: '#000' }}>Phần đầu báo cáo</strong>,
       key: 'head-node',
-      children: [],
+      children: loop(headData), // Sử dụng dữ liệu phần đầu
     };
     const bodyNode = {
       title: <strong style={{ fontSize: '18px', color: '#000' }}>Phần nội dung tiêu chí báo cáo</strong>,
       key: 'body-node',
-      children: loop(data),
+      children: loop(bodyData), // Sử dụng dữ liệu phần thân
     };
     const tailNode = {
       title: <strong style={{ fontSize: '18px', color: '#000' }}>Phần cuối báo cáo</strong>,
       key: 'tail-node',
-      children: [],
+      children: loop(tailData), // Sử dụng dữ liệu phần cuối
     };
+  
     return [headNode, bodyNode, tailNode];
   };
 
@@ -200,6 +207,7 @@ const Donvi = () => {
           allowClear
         />
       </div>
+      <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
       <Tree
         showLine
         expandedKeys={expandedKeys}
@@ -207,6 +215,7 @@ const Donvi = () => {
         onExpand={onExpand}
         treeData={treeDataWithSections}
       />
+      </div>
       <Modal
         title={modalType === 'add' ? "Thêm tiêu chí" : "Sửa tiêu chí"}
         visible={isModalVisible}
