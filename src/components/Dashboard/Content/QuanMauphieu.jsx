@@ -6,9 +6,9 @@ import axiosInstance from '../../../utils/axiosInstance';
 const { Content } = Layout;
 const { Search } = Input;
 const Nguoidung = () => {
+  const [selectedCriteriaFields, setSelectedCriteriaFields] = useState([]);
   const [isAddIndicatorModalVisible, setIsAddIndicatorModalVisible] = useState(false); // Modal cho thêm chỉ tiêu
   const [chiTieuList, setChiTieuList] = useState([]); // Danh sách chỉ tiêu
-const [selectedChiTieu, setSelectedChiTieu] = useState([]); // Giá trị đã chọn cho chỉ tiêu
   const [fieldValues, setFieldValues] = useState({}); // State to hold input values
   const [dataSource, setDataSource] = useState([]);
   const [loaiMauPhieuList, setLoaiMauPhieuList] = useState([]);
@@ -27,6 +27,25 @@ const [selectedChiTieu, setSelectedChiTieu] = useState([]); // Giá trị đã c
   const handleAddCriteria = () => {
     setIsAddCriteriaModalVisible(true); // Mở modal thêm trường thông tin
   };
+  const handleSaveCriteria = () => {
+    addFieldForm
+      .validateFields()
+      .then((values) => {
+        const selectedFields = values.criteriaFields.map(id =>
+          criteriaOptions.find(option => option.TieuChiID === id)
+        ).filter(Boolean); // Loại bỏ giá trị null nếu có
+  
+        if (selectedFields.length > 0) {
+          setSelectedCriteriaFields(prevFields => [...prevFields, ...selectedFields]);
+        }
+  
+        // Đóng modal và reset form
+        setIsAddCriteriaModalVisible(false);
+        addFieldForm.resetFields();
+      })
+      .catch((info) => console.log("Validation Failed:", info));
+  };
+  
   
   const columns = [
     { title: 'STT', dataIndex: 'stt', key: 'stt', align: 'center' },
@@ -279,14 +298,20 @@ const [selectedChiTieu, setSelectedChiTieu] = useState([]); // Giá trị đã c
 
           {/* Phần tiêu chí */}
           <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Phần tiêu chí</h3>
-              <Button type="primary" onClick={handleAddCriteria}>Thêm trường</Button>
-            </div>
-            <p>Các trường thông tin</p>
-            {/* Thêm các trường thông tin cho phần tiêu chí ở đây */}
-          </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <h3 style={{ margin: 0 }}>Phần tiêu chí</h3>
+    <Button type="primary" onClick={handleAddCriteria}>Thêm trường</Button>
+  </div>
+  <p>Các trường thông tin</p>
 
+  {selectedCriteriaFields.length > 0 ? (
+    selectedCriteriaFields.map((field, index) => (
+      <Input key={index} value={field.TenTieuChi} readOnly style={{ marginBottom: "8px" }} />
+    ))
+  ) : (
+    <p>Chưa có tiêu chí nào được chọn.</p>
+  )}
+</div>
           {/* Phần chỉ tiêu */}
           <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -327,9 +352,23 @@ const [selectedChiTieu, setSelectedChiTieu] = useState([]); // Giá trị đã c
       <p>{fieldValues["Đơn vị chủ quản"] || ''}</p>
           <p>{fieldValues["Quốc hiệu tiêu ngữ"] || ''}</p>
           <p>{fieldValues["Tiêu đề báo cáo"] || ''}</p>
-        <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-          <h2>MẪU PHIẾU</h2> {/* Thêm nội dung cho tiêu đề */}
+          <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
+  <h2>MẪU PHIẾU</h2> {/* Tiêu đề */}
+
+  {selectedCriteriaFields.length > 0 ? (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+      {selectedCriteriaFields.map((field, index) => (
+        <div key={index} style={{ fontWeight: "bold", padding: "5px 10px", background: "#f0f0f0", borderRadius: "4px" }}>
+          {field.TenTieuChi}
         </div>
+      ))}
+    </div>
+  ) : (
+    <p><strong>Chưa có tiêu chí nào được chọn.</strong></p>
+  )}
+</div>
+
+
           <p>{fieldValues["Lưu Nhận"] || ''}</p>
           <p>{fieldValues["Ngày Tháng"] || ''}</p>
         {/* Thêm các trường thông tin khác ở đây */}
@@ -461,44 +500,33 @@ const [selectedChiTieu, setSelectedChiTieu] = useState([]); // Giá trị đã c
   visible={isAddCriteriaModalVisible}
   onCancel={() => setIsAddCriteriaModalVisible(false)}
   footer={[
-    <Button key="cancel" onClick={() => setIsAddCriteriaModalVisible(false)}>
-      Hủy
-    </Button>,
-    <Button
-      key="submit"
-      type="primary"
-      onClick={() => {
-        addFieldForm
-          .validateFields()
-          .then((values) => {
-            // Xử lý thêm trường thông tin cho phần tiêu chí
-            console.log('Thêm trường thông tin:', values);
-            setIsAddCriteriaModalVisible(false);
-            addFieldForm.resetFields();
-          })
-          .catch((info) => console.log("Validation Failed:", info));
-      }}
-    >
-      Lưu
-    </Button>,
+    <Button key="cancel" onClick={() => setIsAddCriteriaModalVisible(false)}>Hủy</Button>,
+    <Button key="submit" type="primary" onClick={handleSaveCriteria}>Lưu</Button>,
   ]}
 >
   <Form form={addFieldForm}>
-    <Form.Item
-      name="criteriaField"
-      label="Trường thông tin"
-      rules={[{ required: true, message: "Vui lòng nhập trường thông tin" }]}
-    >
-      <Select placeholder="Chọn trường thông tin" style={{ width: '100%' }}>
-        {criteriaOptions.map(option => (
-          <Select.Option key={option.TieuChiID} value={option.TieuChiID}>
-            {option.TenTieuChi}
-          </Select.Option>
-        ))}
-      </Select>
-    </Form.Item>
+  <Form.Item
+  name="criteriaFields"
+  label="Trường thông tin"
+  rules={[{ required: true, message: "Vui lòng chọn ít nhất một trường thông tin" }]}
+>
+  <Select
+    mode="multiple" // Cho phép chọn nhiều tiêu chí
+    placeholder="Chọn trường thông tin"
+    style={{ width: '100%' }}
+  >
+    {criteriaOptions
+      .filter(option => !selectedCriteriaFields.some(field => field.TieuChiID === option.TieuChiID)) // Lọc bỏ tiêu chí đã chọn
+      .map(option => (
+        <Select.Option key={option.TieuChiID} value={option.TieuChiID}>
+          {option.TenTieuChi}
+        </Select.Option>
+      ))}
+  </Select>
+</Form.Item>
   </Form>
 </Modal>
+
 <Modal
   title="Thêm chỉ tiêu"
   visible={isAddIndicatorModalVisible}
