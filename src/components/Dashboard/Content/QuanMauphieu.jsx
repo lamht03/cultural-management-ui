@@ -6,6 +6,9 @@ import axiosInstance from '../../../utils/axiosInstance';
 const { Content } = Layout;
 const { Search } = Input;
 const Nguoidung = () => {
+  const [isAddIndicatorModalVisible, setIsAddIndicatorModalVisible] = useState(false); // Modal cho thêm chỉ tiêu
+  const [chiTieuList, setChiTieuList] = useState([]); // Danh sách chỉ tiêu
+const [selectedChiTieu, setSelectedChiTieu] = useState([]); // Giá trị đã chọn cho chỉ tiêu
   const [fieldValues, setFieldValues] = useState({}); // State to hold input values
   const [dataSource, setDataSource] = useState([]);
   const [loaiMauPhieuList, setLoaiMauPhieuList] = useState([]);
@@ -16,19 +19,15 @@ const Nguoidung = () => {
   const [isAddbaocaocuoi, setIsAddbaocaocuoi] = useState(false);
   const [selectbaocaocuoi, setSelectetbaocaocuoi] = useState([]);
   const [isAddCriteriaModalVisible, setIsAddCriteriaModalVisible] = useState(false); // State for criteria modal
-  const [isAddIndicatorModalVisible, setIsAddIndicatorModalVisible] = useState(false); // State for indicator modal
   const [form] = Form.useForm();
   const [criteriaOptions, setCriteriaOptions] = useState([]);
-  const [indicatorOptions, setIndicatorOptions] = useState([]);
   const [addFieldForm] = Form.useForm();
   // State to hold selected fields
   const [selectedFields, setSelectedFields] = useState([]);
   const handleAddCriteria = () => {
     setIsAddCriteriaModalVisible(true); // Mở modal thêm trường thông tin
   };
-  const handleAddIndicator = () => {
-    setIsAddIndicatorModalVisible(true); // Mở modal thêm trường thông tin cho phần chỉ tiêu
-  };
+  
   const columns = [
     { title: 'STT', dataIndex: 'stt', key: 'stt', align: 'center' },
     { title: 'Tên mẫu phiếu', dataIndex: 'TenMauPhieu', key: 'TenMauPhieu', align: 'left' },
@@ -89,26 +88,7 @@ const Nguoidung = () => {
       }
     };
   
-    const fetchIndicatorData = async () => {
-      try {
-        const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu');
-        if (response.data.status === 1) {
-          setIndicatorOptions(response.data.data);
-        } else {
-          message.error('Không thể lấy dữ liệu chỉ tiêu');
-        }
-      } catch (error) {
-        message.error('Lỗi khi lấy dữ liệu chỉ tiêu: ' + error.message);
-      }
-    };
-  
-    if (isAddCriteriaModalVisible) {
-      fetchCriteriaData();
-    }
-  
-    if (isAddIndicatorModalVisible) {
-      fetchIndicatorData();
-    }
+    
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20');
@@ -128,8 +108,20 @@ const Nguoidung = () => {
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
+    const fetchChiTieuData = async () => {
+      try {
+        const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu');
+        if (response.data.status === 1) {
+          setChiTieuList(response.data.data);
+        } else {
+          message.error('Không thể lấy dữ liệu chỉ tiêu');
+        }
+      } catch (error) {
+        message.error('Lỗi khi lấy dữ liệu chỉ tiêu: ' + error.message);
+      }
+    };
+    fetchChiTieuData();
     fetchCriteriaData();
-    fetchIndicatorData();
     fetchLoaiMauPhieu();
     fetchData();
     
@@ -196,6 +188,9 @@ const Nguoidung = () => {
       ...prevValues,
       [field]: value,
     }));
+  };
+  const handleAddIndicator = () => {
+    setIsAddIndicatorModalVisible(true); // Mở modal thêm chỉ tiêu
   };
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -505,7 +500,7 @@ const Nguoidung = () => {
   </Form>
 </Modal>
 <Modal
-  title="Thêm trường thông tin cho phần chỉ tiêu"
+  title="Thêm chỉ tiêu"
   visible={isAddIndicatorModalVisible}
   onCancel={() => setIsAddIndicatorModalVisible(false)}
   footer={[
@@ -516,15 +511,8 @@ const Nguoidung = () => {
       key="submit"
       type="primary"
       onClick={() => {
-        addFieldForm
-          .validateFields()
-          .then((values) => {
-            // Xử lý thêm trường thông tin cho phần chỉ tiêu
-            console.log('Thêm trường thông tin:', values);
-            setIsAddIndicatorModalVisible(false);
-            addFieldForm.resetFields();
-          })
-          .catch((info) => console.log("Validation Failed:", info));
+        // Xử lý thêm chỉ tiêu logic ở đây
+        setIsAddIndicatorModalVisible(false);
       }}
     >
       Lưu
@@ -534,16 +522,16 @@ const Nguoidung = () => {
   <Form form={addFieldForm}>
     <Form.Item
       name="indicatorField"
-      label="Trường thông tin"
-      rules={[{ required: true, message: "Vui lòng nhập trường thông tin" }]}
+      label="Chỉ tiêu"
+      rules={[{ required: true, message: "Vui lòng chọn ít nhất một chỉ tiêu" }]}
     >
-      <Select placeholder="Chọn trường thông tin" style={{ width: '100%' }}>
-        {indicatorOptions.map(option => (
-          <Select.Option key={option.ChiTieuID} value={option.ChiTieuID}>
-            {option.TenChiTieu}
-          </Select.Option>
-        ))}
-      </Select>
+      <Select
+        placeholder="Chọn chỉ tiêu"
+        options={chiTieuList.map(item => ({
+          value: item.ChiTieuID,
+          label: item.TenChiTieu,
+        }))}
+      />
     </Form.Item>
   </Form>
 </Modal>
