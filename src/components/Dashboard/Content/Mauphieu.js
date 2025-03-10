@@ -201,7 +201,7 @@ const Nguoidung = () => {
   return (
     <Content style={contentStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: 19, marginLeft: 15 }}>DANH MỤC LOẠI MẪU PHIẾU</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC LOẠI MẪU PHIẾU</h1>
         <Button type="primary" onClick={() => handleOpenModal()}>Thêm mới</Button>
       </div>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>

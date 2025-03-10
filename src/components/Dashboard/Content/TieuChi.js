@@ -196,7 +196,7 @@ const Donvi = () => {
   return (
     <Content style={contentStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ fontWeight: 'bold', margin: 0, color: '#000' }}>DANH MỤC TIÊU CHÍ</h2>
+        <h1 className="text-2xl font-bold mb-6 text-center" style={{ color: '#000' }}>DANH MỤC TIÊU CHÍ</h1>
         <Button type="primary" onClick={showAddModal}>Thêm mới</Button>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '20px' }}>

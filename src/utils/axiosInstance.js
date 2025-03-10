@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { message } from 'antd';
-const API_URL = 'http://192.168.100.136:2003/api/';
+const API_URL = 'http://192.168.100.32:2003/api';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
           return Promise.reject(new Error('No refresh token available'));
         }
         try {
-          const refreshResponse = await axios.post(`${API_URL}/v1/NguoiDung/LamMoiToken`, { RefreshToken: refreshToken });
+          const refreshResponse = await axios.post(`${API_URL}/v1/HeThongNguoiDung/LamMoiToken`, { RefreshToken: refreshToken });
           if (refreshResponse.data.status === 1) {
             const { token: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data;
             localStorage.setItem('accessToken', newAccessToken);

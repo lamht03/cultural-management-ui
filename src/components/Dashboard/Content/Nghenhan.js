@@ -121,7 +121,7 @@ const Nguoidung = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: 19 }}>QUẢN LÝ NGHỆ NHÂN DI SẢN VĂN HÓA PHI VẬT THỂ 
+          <h1 className="text-2xl font-bold mb-6 text-center">QUẢN LÝ NGHỆ NHÂN DI SẢN VĂN HÓA PHI VẬT THỂ 
 
           </h1>
           <Button type="primary">Thêm</Button>

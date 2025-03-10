@@ -209,7 +209,7 @@ const Nguoidung = () => {
     
       <Content style={contentStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: 19 }}>DANH MỤC THỜI GIAN</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC THỜI GIAN</h1>
           <Button type="primary" onClick={openAddModal}>
             <PlusOutlined /> Thêm
           </Button>

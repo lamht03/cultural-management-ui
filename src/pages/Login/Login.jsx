@@ -14,18 +14,30 @@ const Login = () => {
   const navigate = useNavigate();
   const handleModalOk = async () => {
     try {
-      // Gửi email để đặt lại mật khẩu
+      setLoading(true);
       const response = await axiosInstance.post('/v1/HeThongNguoiDung/QuenMatKhau', { email });
-      if (response.data.status === 1) {
-        message.success('Email đặt lại mật khẩu đã được gửi!');
+  
+      // Chuẩn hóa cách lấy status và message từ response
+      const status = response.data.status ?? response.data.Status;
+      const messageText = response.data.message ?? response.data.Message;
+  
+      if (status === 1) {
+        message.success(messageText || 'Mật khẩu mới đã được gửi đến email của bạn!');
         setModalVisible(false);
-        setEmail(''); // Reset email input after successful submission
+        setEmail('');
       } else {
-        message.error(response.data.message || 'Đã xảy ra lỗi!');
+        // Xử lý trường hợp không tìm thấy email
+        const errorMessage = messageText || 'Không tìm thấy tài khoản với email này!';
+        message.error(errorMessage);
       }
     } catch (error) {
-      console.error('Error sending email:', error);
-      message.error('Đã xảy ra lỗi khi gửi email. Vui lòng thử lại!');
+      // Xử lý lỗi từ API
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.Message 
+        || 'Đã xảy ra lỗi khi gửi email. Vui lòng thử lại!';
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
   const onFinish = async (values) => {
@@ -69,7 +81,9 @@ const Login = () => {
   return (
     <div className="login-container">
       <header className="login-header">
-        <h1 className="login-title">Phần mềm quản lý cơ sở dữ liệu chuyên ngành Văn hóa và Thể thao</h1>
+        <h1 className="login-title font-bold text-2xl text-gray-800">
+  Phần mềm quản lý cơ sở dữ liệu chuyên ngành Văn hóa và Thể thao
+</h1>
       </header>
       <div className="login-box">
         <div className="login-image">
@@ -81,7 +95,7 @@ const Login = () => {
             onFinish={onFinish}
             style={{ width: '300px', margin: 'auto', padding: '50px' }}
           >
-            <h2>ĐĂNG NHẬP</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">ĐĂNG NHẬP</h2>
             <Form.Item
               label="Tên đăng nhập"
               name="TenNguoiDung"

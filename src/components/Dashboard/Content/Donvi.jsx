@@ -307,7 +307,7 @@ const Donvi = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '0 50px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-          <h1 style={{ fontSize: 19, marginLeft: '10px' }}>DANH MỤC CƠ QUAN, ĐƠN VỊ</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC CƠ QUAN, ĐƠN VỊ</h1>
           <Button type="primary" onClick={() => showAddModal(null)}>Thêm cơ quan</Button>
         </div>
         <Search placeholder="Tìm kiếm" style={{ width: 200 }} />

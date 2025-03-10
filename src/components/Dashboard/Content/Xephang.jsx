@@ -221,7 +221,7 @@ const Nguoidung = () => {
             marginBottom: "20px",
           }}
         >
-          <h1 style={{ fontSize: 19 }}>DANH MỤC CẤP DI TÍCH XẾP HẠNG
+          <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC CẤP DI TÍCH XẾP HẠNG
           </h1>
           <Button type="primary" onClick={handleAdd}>
             Thêm

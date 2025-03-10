@@ -261,7 +261,7 @@ const Nguoidung = () => {
         {!showSettings ? (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h1 style={{ fontSize: 19 }}>QUẢN LÝ PHÂN QUYỀN NGƯỜI DÙNG</h1>
+              <h1 className="text-2xl font-bold mb-6 text-center">QUẢN LÝ PHÂN QUYỀN NGƯỜI DÙNG</h1>
               <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
                 Thêm
               </Button>

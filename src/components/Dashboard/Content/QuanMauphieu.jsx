@@ -1,52 +1,105 @@
+import Draggable from "react-draggable";
 import React, { useState, useEffect } from 'react';
-import { Button, Layout, Table, Input, Select, message, DatePicker, Modal, Form } from 'antd';
+import { Button, Layout, Table, Input, Select, message, DatePicker, Modal, Card } from 'antd';
 import { EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
 import '../../../assets/css/Nguoidung.css';
 import axiosInstance from '../../../utils/axiosInstance';
+const { Option } = Select;
 const { Content } = Layout;
 const { Search } = Input;
 const Nguoidung = () => {
-  const [selectedCriteriaFields, setSelectedCriteriaFields] = useState([]);
-  const [isAddIndicatorModalVisible, setIsAddIndicatorModalVisible] = useState(false); // Modal cho thêm chỉ tiêu
-  const [chiTieuList, setChiTieuList] = useState([]); // Danh sách chỉ tiêu
-  const [fieldValues, setFieldValues] = useState({}); // State to hold input values
+  const [isModalbaocao, setIsModalbaocao] = useState(false);
+  const [selectedbaocao, setSelectedbaocao] = useState([]);
+  const [cardFields, setCardFields] = useState([]);
+  const [isAddIndicatorFieldModalVisible, setIsAddIndicatorFieldModalVisible] = useState(false);
+  const [criteriaFieldValues, setCriteriaFieldValues] = useState({}); // State to hold input values for criteria
+  const [selectedFields, setSelectedFields] = useState([]);
+  const [selectedCriteriaFields, setSelectedCriteriaFields] = useState([]); // State for criteria fields
+  const [isAddFieldModalVisible, setIsAddFieldModalVisible] = useState(false);
+  const [isAddCriteriaFieldModalVisible, setIsAddCriteriaFieldModalVisible] = useState(false); // Modal state for criteria
   const [dataSource, setDataSource] = useState([]);
   const [loaiMauPhieuList, setLoaiMauPhieuList] = useState([]);
   const [searchName, setSearchName] = useState('');
   const [searchLoaiMauPhieu, setSearchLoaiMauPhieu] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isAddFieldModalVisible, setIsAddFieldModalVisible] = useState(false);
-  const [isAddbaocaocuoi, setIsAddbaocaocuoi] = useState(false);
-  const [selectbaocaocuoi, setSelectetbaocaocuoi] = useState([]);
-  const [isAddCriteriaModalVisible, setIsAddCriteriaModalVisible] = useState(false); // State for criteria modal
-  const [form] = Form.useForm();
-  const [criteriaOptions, setCriteriaOptions] = useState([]);
-  const [addFieldForm] = Form.useForm();
-  // State to hold selected fields
-  const [selectedFields, setSelectedFields] = useState([]);
-  const handleAddCriteria = () => {
-    setIsAddCriteriaModalVisible(true); // Mở modal thêm trường thông tin
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null); // Store the record to delete
+  const [selectedIndicatorFields, setSelectedIndicatorFields] = useState([]); // State for selected indicator fields
+  const [inputValues, setInputValues] = useState({}); // State to hold input values for selected fields
+
+  // màn báo cáo
+  const handleFieldSelect = (value) => {
+    setSelectedFields(value);
+    // Initialize input values for selected fields
+    const newInputValues = {};
+    value.forEach(field => {
+      if (!inputValues[field]) {
+        newInputValues[field] = ''; // Initialize with empty string
+      }
+    });
+    setInputValues(prev => ({ ...prev, ...newInputValues }));
   };
-  const handleSaveCriteria = () => {
-    addFieldForm
-      .validateFields()
-      .then((values) => {
-        const selectedFields = values.criteriaFields.map(id =>
-          criteriaOptions.find(option => option.TieuChiID === id)
-        ).filter(Boolean); // Loại bỏ giá trị null nếu có
+  const handleInputChange = (field, value) => {
+    setInputValues(prev => ({ ...prev, [field]: value }));
+  };
+ // màn tiêu chí
+  const handleCriteriaFieldSelect = (value) => {
+    setSelectedCriteriaFields(value); // Handle selection for criteria fields
+    // Initialize input values for selected criteria
+    const newCriteriaFieldValues = {};
+    value.forEach(field => {
+      if (!criteriaFieldValues[field]) {
+        newCriteriaFieldValues[field] = ''; // Initialize with empty string
+      }
+    });
+    setCriteriaFieldValues(prev => ({ ...prev, ...newCriteriaFieldValues }));
+  };
+  // màn chỉ tiêu 
+  const handleIndicatorFieldSelect = (value) => {
+    // Update selected indicator fields
+    setSelectedIndicatorFields(value);
   
-        if (selectedFields.length > 0) {
-          setSelectedCriteriaFields(prevFields => [...prevFields, ...selectedFields]);
-        }
+    // Initialize input values for selected indicator fields
+    const newIndicatorFieldValues = {};
+    value.forEach(field => {
+      if (!criteriaFieldValues[field]) { // You might want to use a different state for indicator field values
+        newIndicatorFieldValues[field] = ''; // Initialize with empty string
+      }
+    });
   
-        // Đóng modal và reset form
-        setIsAddCriteriaModalVisible(false);
-        addFieldForm.resetFields();
-      })
-      .catch((info) => console.log("Validation Failed:", info));
+    // Assuming you want to keep track of indicator field values separately
+    setCriteriaFieldValues(prev => ({ ...prev, ...newIndicatorFieldValues }));
   };
   
-  
+  const handleAddField = () => {
+    setIsAddFieldModalVisible(true);
+  }
+  // màn bóa cáo cuối
+
+  const handleAddReport = () => {
+    // Update the card fields with the selected fields
+    setCardFields(selectedbaocao);
+    setIsModalbaocao(false); // Close the modal
+  };
+  const handleSelectbaocao = (value) => {
+    setSelectedbaocao(value);
+    // Initialize input values for selected fields
+    const newInputValues = {};
+    value.forEach(field => {
+      if (!inputValues[field]) {
+        newInputValues[field] = ''; // Initialize with empty string
+      }
+    });
+    setInputValues(prev => ({ ...prev, ...newInputValues }));
+  };
+  const handleInputChange1 = (field, value) => {
+    setInputValues(prev => ({ ...prev, [field]: value }));
+  };
+  const handleAddReport1 = () => {
+    // Update the card fields with the selected fields
+    setCardFields(selectedbaocao);
+    setIsModalbaocao(false); // Close the modal
+  };
   const columns = [
     { title: 'STT', dataIndex: 'stt', key: 'stt', align: 'center' },
     { title: 'Tên mẫu phiếu', dataIndex: 'TenMauPhieu', key: 'TenMauPhieu', align: 'left' },
@@ -65,7 +118,10 @@ const Nguoidung = () => {
             type="link"
             danger
             style={{ color: 'black', fontSize: '20px' }}
-            onClick={() => handleDelete(record.key)}
+            onClick={() => {
+              setRecordToDelete(record.key); // Set the record to delete
+              setDeleteModalVisible(true); // Show delete confirmation modal
+            }}
           >
             <DeleteOutlined />
           </Button>
@@ -76,43 +132,22 @@ const Nguoidung = () => {
       ),
     },
   ];
-  const handleAddField1 = (values) => {
-    setSelectetbaocaocuoi(values.fieldName);
-    setIsAddbaocaocuoi(false);
-    addFieldForm.resetFields();
-  };
   useEffect(() => {
-    const fetchLoaiMauPhieu = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20');
-        if (response.data.status === 1) {
-          setLoaiMauPhieuList(response.data.data);
+        const [loaiMauPhieuResponse, dataResponse] = await Promise.all([
+          axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20'),
+          axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20'),
+        ]);
+
+        if (loaiMauPhieuResponse.data.status === 1) {
+          setLoaiMauPhieuList(loaiMauPhieuResponse.data.data);
         } else {
           message.error('Không thể lấy dữ liệu Loại Mẫu Phiếu');
         }
-      } catch (err) {
-        message.error('Lỗi khi lấy dữ liệu: ' + err.message);
-      }
-    };
-    const fetchCriteriaData = async () => {
-      try {
-        const response = await axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi');
-        if (response.data.status === 1) {
-          setCriteriaOptions(response.data.data);
-        } else {
-          message.error('Không thể lấy dữ liệu tiêu chí');
-        }
-      } catch (error) {
-        message.error('Lỗi khi lấy dữ liệu tiêu chí: ' + error.message);
-      }
-    };
-  
-    
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20');
-        if (response.data.Status === 1) {
-          const formattedData = response.data.Data.map((item, index) => ({
+
+        if (dataResponse.data.Status === 1) {
+          const formattedData = dataResponse.data.Data.map((item, index) => ({
             key: item.MauPhieuID,
             stt: index + 1,
             TenMauPhieu: item.TenMauPhieu,
@@ -121,101 +156,38 @@ const Nguoidung = () => {
           }));
           setDataSource(formattedData);
         } else {
-          message.error(response.data.Message || 'Không thể lấy dữ liệu');
+          message.error(dataResponse.data.Message || 'Không thể lấy dữ liệu');
         }
       } catch (err) {
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
-    const fetchChiTieuData = async () => {
-      try {
-        const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu');
-        if (response.data.status === 1) {
-          setChiTieuList(response.data.data);
-        } else {
-          message.error('Không thể lấy dữ liệu chỉ tiêu');
-        }
-      } catch (error) {
-        message.error('Lỗi khi lấy dữ liệu chỉ tiêu: ' + error.message);
-      }
-    };
-    fetchChiTieuData();
-    fetchCriteriaData();
-    fetchLoaiMauPhieu();
-    fetchData();
-    
-  }, []);
 
-  const handleDelete = async (id) => {
-    Modal.confirm({
-      title: 'Xóa dữ liệu',
-      content: 'Bạn có muốn xóa mẫu phiếu này không?',
-      okText: 'Có',
-      cancelText: 'Không',
-      onOk: async () => {
-        try {
-          const response = await axiosInstance.post(`/RpMauPhieu/Delete?id=${id}`);
-          if (response.data.status === 1) {
-            message.success('Xóa thành công!');
-            setDataSource(dataSource.filter(item => item.key !== id));
-          } else {
-            message.error(response.data.Message || 'Xóa thất bại!');
-          }
-        } catch (err) {
-          message.error('Lỗi khi xóa: ' + err.message);
-        }
-      },
-    });
-  };
-  const handleAdd = async (values) => {
+    fetchData();
+  }, []);
+  const handleDelete = async () => {
     try {
-      const response = await axiosInstance.post('/RpMauPhieu/Insert', {
-        LoaiMauPhieuID: values.LoaiMauPhieuID,
-        TenMauPhieu: values.TenMauPhieu,
-        MaMauPhieu: values.MaMauPhieu,
-      });
+      const response = await axiosInstance.post(`/RpMauPhieu/Delete?id=${recordToDelete}`);
       if (response.data.status === 1) {
-        message.success('Thêm mới thành công!');
-        setDataSource((prevData) => [
-          ...prevData,
-          {
-            key: response.data.data.MauPhieuID,
-            ...values,
-          },
-        ]);
-        setIsModalVisible(false);
-        form.resetFields();
+        message.success('Xóa thành công!');
+        setDataSource(dataSource.filter(item => item.key !== recordToDelete));
       } else {
-        message.error(response.data.message || 'Thêm mới thất bại');
+        message.error(response.data.Message || 'Xóa thất bại!');
       }
-    } catch (error) {
-      message.error('Lỗi khi thêm mới: ' + error.response?.data?.message || error.message);
+    } catch (err) {
+      message.error('Lỗi khi xóa: ' + err.message);
+    } finally {
+      setDeleteModalVisible(false); // Close the modal after deletion
     }
   };
-
-  const handleCancel = () => {
+  const Luu = () => {
     setIsModalVisible(false);
-    form.resetFields();
-  };
-  const handleAddField = (values) => {
-    // Handle adding fields logic here
-    setIsAddFieldModalVisible(false);
-    addFieldForm.resetFields();
-  };
-  const handleInputChange = (field, value) => {
-    setFieldValues((prevValues) => ({
-      ...prevValues,
-      [field]: value,
-    }));
-  };
-  const handleAddIndicator = () => {
-    setIsAddIndicatorModalVisible(true); // Mở modal thêm chỉ tiêu
   };
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '20px', backgroundColor: '#fff', border: '1px solid #ccc' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: 19 }}>QUẢN LÝ MẪU PHIẾU</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center">QUẢN LÝ MẪU PHIẾU</h1>
           <Button type="primary" onClick={() => setIsModalVisible(true)}>
             Thêm
           </Button>
@@ -251,318 +223,336 @@ const Nguoidung = () => {
           columns={columns}
           pagination={{ pageSize: 5 }}
         />
-<Modal
-  title="Thêm mẫu phiếu"
-  visible={isModalVisible}
-  onCancel={handleCancel}
-  footer={null}
-  width={10000} // Thay đổi chiều rộng modal
->
-  <div style={{ display: 'flex' }}>
-    {/* Bên trái: Form */}
-    <div style={{ flex: 1, paddingRight: '20px' }}>
-      <Form
-        form={form}
-        onFinish={handleAdd}
-        labelCol={{ span: 24 }} // Full width for label
-        wrapperCol={{ span: 24 }} // Full width for input
-      >
-        <Form.Item name="LoaiMauPhieuID" label="Loại mẫu phiếu" rules={[{ required: true }]}>
-          <Select placeholder="Select a LoaiMauPhieuID" style={{ width: '100%' }} options={loaiMauPhieuList.map(item => ({ value: item.LoaiMauPhieuID, label: item.TenLoaiMauPhieu }))} />
-        </Form.Item>
-        <Form.Item name="TenMauPhieu" label="Tên mẫu phiếu" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item name="MaMauPhieu" label="Mã mẫu phiếu" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <div style={{ maxHeight: '400px', overflowY: 'auto', overflowX: 'auto' }}>
-          {/* Phần đầu báo cáo */}
-          <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Phần đầu báo cáo</h3>
-              <Button type="primary" onClick={() => setIsAddFieldModalVisible(true)}>Thêm trường</Button>
-            </div>
-            <p>Các trường thông tin</p>
-            {selectedFields.map((field, index) => (
-              <div key={index} style={{ marginTop: '10px' }}>
-                <span>{field}</span>
-                <Input
-                placeholder={`Nhập ${field}`}
-                style={{ marginLeft: '10px', width: '200px' }}
-                onChange={(e) => handleInputChange(field, e.target.value)} // Update field value on change
-              />
+        {/* Add New Record Modal */}
+        <Modal
+          title="Thêm mới mẫu phiếu"
+          visible={isModalVisible}
+          onCancel={() => setIsModalVisible(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setIsModalVisible(false)}>
+              Hủy
+            </Button>,
+            <Button key="save" type="primary" onClick={() => Luu()}>
+              Lưu
+            </Button>,
+          ]}
+          width={10000}
+          modalRender={(modal) => <Draggable>{modal}</Draggable>} 
+        >
+          <div className="flex gap-4">
+            {/* Left Column */}
+            <div className="flex-1">
+              {/* Loại mẫu phiếu */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Loại mẫu phiếu <span className="text-red-500">*</span>
+                </label>
+                <Select 
+                  placeholder="Chọn loại mẫu phiếu" 
+                  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                >
+                  {loaiMauPhieuList.map(item => (
+                    <Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
+                      {item.TenLoaiMauPhieu}
+                    </Option>
+                  ))}
+                </Select>
               </div>
-            ))}
-          </div>
 
-          {/* Phần tiêu chí */}
-          <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <h3 style={{ margin: 0 }}>Phần tiêu chí</h3>
-    <Button type="primary" onClick={handleAddCriteria}>Thêm trường</Button>
-  </div>
-  <p>Các trường thông tin</p>
+              {/* Tên biểu mẫu */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Tên biểu mẫu <span className="text-red-500">*</span>
+                </label>
+                <Input 
+                  placeholder="Nhập tên biểu mẫu" 
+                  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                />
+              </div>
 
-  {selectedCriteriaFields.length > 0 ? (
-    selectedCriteriaFields.map((field, index) => (
-      <Input key={index} value={field.TenTieuChi} readOnly style={{ marginBottom: "8px" }} />
-    ))
-  ) : (
-    <p>Chưa có tiêu chí nào được chọn.</p>
-  )}
-</div>
-          {/* Phần chỉ tiêu */}
-          <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Phần chỉ tiêu</h3>
-              <Button type="primary" onClick={handleAddIndicator}>Thêm trường</Button>
+              {/* Mã mẫu phiếu */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Mã mẫu phiếu <span className="text-red-500">*</span>
+                </label>
+                <Input 
+                  placeholder="Nhập mã mẫu phiếu" 
+                  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                />
+              </div>
+
+              {/* Card for "Phần đầu báo cáo" */}
+              <Card
+          title="Phần đầu báo cáo"
+          extra={<Button type="primary" onClick={handleAddField}>Thêm trường</Button>}
+          className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+        >
+          <p className="text-sm text-gray-500">Các trường thông tin</p>
+          {selectedFields.map(field => (
+            <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+              <label className="block font-semibold mb-1">{field}</label>
+              <Input 
+                placeholder={`Nhập ${field}`} 
+                value={inputValues[field] || ''} // Bind input value to state
+                onChange={(e) => handleInputChange(field, e.target.value)} // Update state on input change
+                className="w-full border border-gray-300 rounded-md p-2"
+              />
             </div>
-            <p>Các trường thông tin</p>
-            {/* Thêm các trường thông tin cho phần chỉ tiêu ở đây */}
-          </div>
+          ))}
+        </Card>
 
-          {/* Phần cuối báo cáo */}
-          <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <h3 style={{ margin: 0 }}>Phần cuối báo cáo</h3>
-    <Button type="primary" onClick={() => setIsAddbaocaocuoi(true)}>Thêm trường</Button>
-  </div>
-  <p>Các trường thông tin</p>
-  
-  {/* Hiển thị các trường đã chọn kèm ô nhập liệu */}
-  {selectbaocaocuoi.map((field, index) => (
-    <div key={index} style={{ marginTop: '10px' }}>
-      <span>{field}</span>
-      <Input 
-        placeholder={`Nhập ${field}`} 
-        style={{ marginLeft: '10px', width: '200px' }}
-        value={fieldValues[field] || ''}
-        onChange={(e) => handleInputChange(field, e.target.value)}
-      />
+              {/* Card for "Phần tiêu chí" */}
+              <Card 
+                title="Phần tiêu chí" 
+                extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>} 
+                className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+              >
+                <p className="text-sm text-gray-500">Các trường thông tin</p>
+                {selectedCriteriaFields.map(field => (
+                  <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+                    <label className="block font-semibold mb-1">{field}</label>
+                    
+                  </div>
+                ))}
+              </Card>
+
+              {/* Card for "Phần chỉ tiêu" */}
+              <Card 
+  title="Phần chỉ tiêu" 
+  extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>} 
+  className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+>
+  <p className="text-sm text-gray-500">Các trường thông tin</p>
+  {selectedIndicatorFields.map(field => (
+    <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+      <label className="block font-semibold mb-1">{field}</label>
     </div>
   ))}
+</Card>
+
+              {/* Card for "Phần báo cuối" */}
+              <Card 
+          title="Phần báo cuối" 
+          extra={<Button type="primary" onClick={() => setIsModalbaocao(true)}>Thêm trường</Button>} 
+          className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+        >
+          <p className="text-sm text-gray-500">Các trường thông tin</p>
+          {cardFields.map(field => (
+            <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+              <label className="block font-semibold mb-1">{field}</label>
+              <Input placeholder={`Nhập ${field}`} className="w-full border border-gray-300 rounded-md p-2" />
+            </div>
+          ))}
+        </Card>
+            </div>
+            {/* Right Column */}
+            <div className="flex-1 flex flex-col items-center">
+  {/* Top Paragraphs */}
+  <div className="flex justify-between w-full mb-2"> {/* Use justify-between to space out the items */}
+  <p className="mr-2">{inputValues[selectedFields[0]] || ''}</p> {/* This will show the first selected field or default to '1' */}
+  <p className="ml-2">{inputValues[selectedFields[1]] || ''}</p>
+ {/* This will show the second selected field or default to '2' */}
+  </div>
+
+  {/* Centered Paragraph */}
+  <p className="mb-2">{inputValues[selectedFields[2]] || ''}</p>
+
+  {/* Mẫu Phiếu Box */}
+  <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
+    <b className="text-lg" style={{ color: 'black', textAlign: 'center' ,marginLeft: '400px',}}>MẪU PHIẾU</b>
+    {/* Có thể thêm preview mẫu phiếu ở đây */}
+  </div>
+
+  {/* Bottom Paragraphs */}
+  <div className="flex flex-col items-end mt-2 w-full"> {/* Align items to the right */}
+    <p className="mb-2">1</p> {/* This will be above */}
+    <p>1</p> {/* This will be below */}
+  </div>
 </div>
-        </div>
-      </Form>
-    </div>
-    {/* Bên phải: Nội dung khác */}
-    <div style={{ flex: 1, marginLeft: '20px' }}>
-      <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-      <p>{fieldValues["Đơn vị chủ quản"] || ''}</p>
-          <p>{fieldValues["Quốc hiệu tiêu ngữ"] || ''}</p>
-          <p>{fieldValues["Tiêu đề báo cáo"] || ''}</p>
-          <div style={{ width: '100%', margin: '20px 0', border: '1px solid rgb(173, 170, 170)', padding: '10px', borderRadius: '4px' }}>
-  <h2>MẪU PHIẾU</h2> {/* Tiêu đề */}
+          </div>
+        </Modal>
 
-  {selectedCriteriaFields.length > 0 ? (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-      {selectedCriteriaFields.map((field, index) => (
-        <div key={index} style={{ fontWeight: "bold", padding: "5px 10px", background: "#f0f0f0", borderRadius: "4px" }}>
-          {field.TenTieuChi}
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p><strong>Chưa có tiêu chí nào được chọn.</strong></p>
-  )}
-</div>
+        {/* Add Field Modal */}
+        <Modal
+          title="Thêm trường thông tin"
+          visible={isAddFieldModalVisible}
+          onCancel={() => setIsAddFieldModalVisible(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setIsAddFieldModalVisible(false)}>
+              Hủy
+            </Button>,
+            <Button 
+              key="save" 
+              type="primary" 
+              onClick={() => {
+                console.log("Selected Fields:", selectedFields);
+                setIsAddFieldModalVisible(false);
+              }}
+            >
+              Lưu
+            </Button>,
+          ]}
+        >
+          <div>
+            <div className="flex flex-col mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Trường thông tin <span className="text-red-500">*</span>
+              </label>
+              <Select 
+                mode="multiple"
+                allowClear
+                placeholder="Chọn trường thông tin" 
+                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                value={selectedFields}
+                onChange={handleFieldSelect}
+              >
+                <Option value="Đơn vị chủ quản" disabled={selectedFields.includes("Đơn vị chủ quản")}>
+                  Đơn vị chủ quản
+                </Option>
+                <Option value="Quốc hiệu tiêu ngữ" disabled={selectedFields.includes("Quốc hiệu tiêu ngữ")}>
+                  Quốc hiệu tiêu ngữ
+                </Option>
+                <Option value="Tiêu đề báo cáo" disabled={selectedFields.includes("Tiêu đề báo cáo")}>
+                  Tiêu đề báo cáo
+                </Option>
+              </Select>
+            </div>
+          </div>
+        </Modal>
 
-
-          <p>{fieldValues["Lưu Nhận"] || ''}</p>
-          <p>{fieldValues["Ngày Tháng"] || ''}</p>
-        {/* Thêm các trường thông tin khác ở đây */}
-      </div>
+        {/* Add Criteria Field Modal */}
+        <Modal
+  title="Thêm tiêu chí"
+  visible={isAddCriteriaFieldModalVisible}
+  onCancel={() => setIsAddCriteriaFieldModalVisible(false)}
+  footer={[
+    <Button key="cancel" onClick={() => setIsAddCriteriaFieldModalVisible(false)}>
+      Hủy
+    </Button>,
+    <Button 
+      key="save" 
+      type="primary" 
+      onClick={() => {
+        console.log("Selected Criteria Fields:", selectedCriteriaFields);
+        setIsAddCriteriaFieldModalVisible(false);
+      }}
+    >
+      Lưu
+    </Button>,
+  ]}
+>
+  <div>
+    <div className="flex flex-col mb-4">
+      <label className="block text-sm font-medium text-gray-700">
+        Tiêu chí <span className="text-red-500">*</span>
+      </label>
+      <Select
+        mode="multiple"
+        allowClear
+        placeholder="Chọn tiêu chí"
+        className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+        value={selectedCriteriaFields}
+        onChange={handleCriteriaFieldSelect}
+      >
+        <Option value="Tiêu chí 1" disabled={selectedCriteriaFields.includes("Tiêu chí 1")}>
+          Tiêu chí 1
+        </Option>
+        <Option value="Tiêu chí 2" disabled={selectedCriteriaFields.includes("Tiêu chí 2")}>
+          Tiêu chí 2
+        </Option>
+        <Option value="Tiêu chí 3" disabled={selectedCriteriaFields.includes("Tiêu chí 3")}>
+          Tiêu chí 3
+        </Option>
+      </Select>
     </div>
   </div>
-  <Form.Item>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-            <Button type="primary" htmlType="submit" style={{ marginRight: '10px' }}>
-              Lưu
-            </Button>
-            <Button type="default" onClick={handleCancel}>
-              Hủy
-            </Button>
-          </div>
-        </Form.Item>
 </Modal>
-<Modal
-  title="Thêm trường thông tin"
-  visible={isAddFieldModalVisible}
-  onCancel={() => setIsAddFieldModalVisible(false)}
-  footer={[
-    <Button key="cancel" onClick={() => setIsAddFieldModalVisible(false)}>
-      Hủy
-    </Button>,
-    <Button
-      key="submit"
-      type="primary"
-      onClick={() => {
-        addFieldForm
-          .validateFields()
-          .then((values) => {
-            handleAddField(values);
-          })
-          .catch((info) => console.log("Validation Failed:", info));
-      }}
-    >
-      Lưu
-    </Button>,
-  ]}
->
-  <Form
-    form={addFieldForm}
-    onFinish={handleAddField}
-  >
-    <Form.Item
-      name="fieldName"
-      label="Trường thông tin"
-      rules={[{ required: true, message: "Vui lòng chọn ít nhất một trường thông tin" }]}
-    >
-      <Select
-        mode="multiple"
-        placeholder="Chọn các trường thông tin"
-        allowClear
-        value={selectedFields} // Set the selected fields as the value
-        onChange={(value) => {
-          // Update selected fields on change
-          setSelectedFields(value);
-        }}
-      >
-        <Select.Option value="Đơn vị chủ quản" disabled={selectedFields.includes("Đơn vị chủ quản")}>
-          Đơn vị chủ quản
-        </Select.Option>
-        <Select.Option value="Quốc hiệu tiêu ngữ" disabled={selectedFields.includes("Quốc hiệu tiêu ngữ")}>
-          Quốc hiệu tiêu ngữ
-        </Select.Option>
-        <Select.Option value="Tiêu đề báo cáo" disabled={selectedFields.includes("Tiêu đề báo cáo")}>
-          Tiêu đề báo cáo
-        </Select.Option>
-      </Select>
-    </Form.Item>
-  </Form>
-</Modal>
-<Modal
-  title="Thêm trường thông tin"
-  visible={isAddbaocaocuoi}
-  onCancel={() => setIsAddbaocaocuoi(false)}
-  footer={[
-    <Button key="cancel" onClick={() => setIsAddbaocaocuoi(false)}>
-      Hủy
-    </Button>,
-    <Button
-      key="submit"
-      type="primary"
-      onClick={() => {
-        addFieldForm
-          .validateFields()
-          .then((values) => {
-            handleAddField1(values);
-          })
-          .catch((info) => console.log("Validation Failed:", info));
-      }}
-    >
-      Lưu
-    </Button>,
-  ]}
->
-  <Form
-    form={addFieldForm}
-    onFinish={handleAddField1}
-  >
-    <Form.Item
-      name="fieldName"
-      label="Trường thông tin"
-      rules={[{ required: true, message: "Vui lòng chọn ít nhất một trường thông tin" }]}
-    >
-      <Select
-        mode="multiple"
-        placeholder="Chọn các trường thông tin"
-        allowClear
-        value={selectbaocaocuoi}
-        onChange={(value) => {
-          setSelectetbaocaocuoi(value);
-        }}
-      >
-        <Select.Option value="Lưu Nhận" disabled={selectbaocaocuoi.includes("Lưu Nhận")}>
-          Lưu Nhận
-        </Select.Option>
-        <Select.Option value="Ngày Tháng" disabled={selectbaocaocuoi.includes("Ngày Tháng")}>
-          Ngày Tháng
-        </Select.Option>
-      </Select>
-    </Form.Item>
-  </Form>
-</Modal>
-
-<Modal
-  title="Thêm trường thông tin cho phần tiêu chí"
-  visible={isAddCriteriaModalVisible}
-  onCancel={() => setIsAddCriteriaModalVisible(false)}
-  footer={[
-    <Button key="cancel" onClick={() => setIsAddCriteriaModalVisible(false)}>Hủy</Button>,
-    <Button key="submit" type="primary" onClick={handleSaveCriteria}>Lưu</Button>,
-  ]}
->
-  <Form form={addFieldForm}>
-  <Form.Item
-  name="criteriaFields"
-  label="Trường thông tin"
-  rules={[{ required: true, message: "Vui lòng chọn ít nhất một trường thông tin" }]}
->
-  <Select
-    mode="multiple" // Cho phép chọn nhiều tiêu chí
-    placeholder="Chọn trường thông tin"
-    style={{ width: '100%' }}
-  >
-    {criteriaOptions
-      .filter(option => !selectedCriteriaFields.some(field => field.TieuChiID === option.TieuChiID)) // Lọc bỏ tiêu chí đã chọn
-      .map(option => (
-        <Select.Option key={option.TieuChiID} value={option.TieuChiID}>
-          {option.TenTieuChi}
-        </Select.Option>
-      ))}
-  </Select>
-</Form.Item>
-  </Form>
-</Modal>
-
 <Modal
   title="Thêm chỉ tiêu"
-  visible={isAddIndicatorModalVisible}
-  onCancel={() => setIsAddIndicatorModalVisible(false)}
+  visible={isAddIndicatorFieldModalVisible}
+  onCancel={() => setIsAddIndicatorFieldModalVisible(false)}
   footer={[
-    <Button key="cancel" onClick={() => setIsAddIndicatorModalVisible(false)}>
+    <Button key="cancel" onClick={() => setIsAddIndicatorFieldModalVisible(false)}>
       Hủy
     </Button>,
-    <Button
-      key="submit"
-      type="primary"
+    <Button 
+      key="save" 
+      type="primary" 
       onClick={() => {
-        // Xử lý thêm chỉ tiêu logic ở đây
-        setIsAddIndicatorModalVisible(false);
+        console.log("Selected Indicator Fields:", selectedIndicatorFields);
+        setIsAddIndicatorFieldModalVisible(false);
       }}
     >
       Lưu
     </Button>,
   ]}
 >
-  <Form form={addFieldForm}>
-    <Form.Item
-      name="indicatorField"
-      label="Chỉ tiêu"
-      rules={[{ required: true, message: "Vui lòng chọn ít nhất một chỉ tiêu" }]}
-    >
+  <div>
+    <div className="flex flex-col mb-4">
+      <label className="block text-sm font-medium text-gray-700">
+        Chỉ tiêu <span className="text-red-500">*</span>
+      </label>
       <Select
+        mode="multiple"
+        allowClear
         placeholder="Chọn chỉ tiêu"
-        options={chiTieuList.map(item => ({
-          value: item.ChiTieuID,
-          label: item.TenChiTieu,
-        }))}
-      />
-    </Form.Item>
-  </Form>
+        className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+        value={selectedIndicatorFields}
+        onChange={handleIndicatorFieldSelect}
+      >
+        <Option value="Chỉ tiêu 1" disabled={selectedIndicatorFields.includes("Chỉ tiêu 1")}>
+          Chỉ tiêu 1
+        </Option>
+        <Option value="Chỉ tiêu 2" disabled={selectedIndicatorFields.includes("Chỉ tiêu 2")}>
+          Chỉ tiêu 2
+        </Option>
+        <Option value="Chỉ tiêu 3" disabled={selectedIndicatorFields.includes("Chỉ tiêu 3")}>
+          Chỉ tiêu 3
+        </Option>
+        <Option value="Chỉ tiêu 4" disabled={selectedIndicatorFields.includes("Chỉ tiêu 4")}>
+          Chỉ tiêu 4
+        </Option>
+        <Option value="Chỉ tiêu 5" disabled={selectedIndicatorFields.includes("Chỉ tiêu 5")}>
+          Chỉ tiêu 5
+        </Option>
+      </Select>
+    </div>
+  </div>
 </Modal>
+<Modal
+          title="Thêm báo cáo cuối"
+          visible={isModalbaocao}
+          onCancel={() => setIsModalbaocao(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setIsModalbaocao(false)}>Hủy</Button>,
+            <Button key="save" type="primary" onClick={handleAddReport}>Thêm thông tin</Button>,
+          ]}
+        >
+          <label className="block mb-2 font-semibold">Trường thông tin <span className="text-red-500">*</span></label>
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Chọn tiêu chí"
+            className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+            value={selectedbaocao}
+            onChange={handleSelectbaocao}
+          >
+            <Option value="Lưu nhận" disabled={selectedbaocao.includes("Lưu nhận")}>
+              Lưu nhận
+            </Option>
+            <Option value="Ngày tháng" disabled={selectedbaocao.includes("Ngày tháng")}>
+              Ngày tháng
+            </Option>
+          </Select>
+        </Modal>
+        <Modal
+          title="Xác nhận xóa"
+          visible={deleteModalVisible}
+          onOk={handleDelete}
+          onCancel={() => setDeleteModalVisible(false)}
+        >
+          <p>Bạn có chắc chắn muốn xóa mẫu phiếu này không?</p>
+        </Modal>
       </Content>
     </Layout>
   );

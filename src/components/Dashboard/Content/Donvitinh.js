@@ -242,7 +242,7 @@ const Content = () => {
           marginBottom: '20px',
         }}
       >
-        <h1 style={{ fontSize: 19, marginRight: 10 }}>DANH MỤC ĐƠN VỊ TÍNH</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC ĐƠN VỊ TÍNH</h1>
         <Button type="primary" onClick={() => setModalVisible(true)}>Thêm mới</Button>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>

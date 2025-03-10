@@ -192,7 +192,7 @@ const Nguoidung = () => {
           marginBottom: '20px',
         }}
       >
-        <h1 style={{ fontSize: 19, marginLeft: '10px' }}>DANH MỤC LOẠI DI TÍCH</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC LOẠI DI TÍCH</h1>
         <Button type="primary" onClick={handleAddNew}>
           Thêm
         </Button>
