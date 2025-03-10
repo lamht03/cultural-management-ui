@@ -8,6 +8,7 @@ const { Option } = Select;
 const { Content } = Layout;
 const { Search } = Input;
 const Nguoidung = () => {
+  const [criteriaInputValues, setCriteriaInputValues] = useState({});
   const [isModalbaocao, setIsModalbaocao] = useState(false);
   const [selectedbaocao, setSelectedbaocao] = useState([]);
   const [cardFields, setCardFields] = useState([]);
@@ -43,17 +44,17 @@ const Nguoidung = () => {
     setInputValues(prev => ({ ...prev, [field]: value }));
   };
  // màn tiêu chí
-  const handleCriteriaFieldSelect = (value) => {
-    setSelectedCriteriaFields(value); // Handle selection for criteria fields
-    // Initialize input values for selected criteria
-    const newCriteriaFieldValues = {};
-    value.forEach(field => {
-      if (!criteriaFieldValues[field]) {
-        newCriteriaFieldValues[field] = ''; // Initialize with empty string
-      }
-    });
-    setCriteriaFieldValues(prev => ({ ...prev, ...newCriteriaFieldValues }));
-  };
+ const handleCriteriaFieldSelect = (value) => {
+  setSelectedCriteriaFields(value);
+  // Initialize input values for selected criteria fields
+  const newInputValues = {};
+  value.forEach(field => {
+    if (!criteriaInputValues[field]) {
+      newInputValues[field] = ''; // Initialize with empty string
+    }
+  });
+  setCriteriaInputValues(prev => ({ ...prev, ...newInputValues }));
+};
   // màn chỉ tiêu 
   const handleIndicatorFieldSelect = (value) => {
     // Update selected indicator fields
@@ -92,14 +93,7 @@ const Nguoidung = () => {
     });
     setInputValues(prev => ({ ...prev, ...newInputValues }));
   };
-  const handleInputChange1 = (field, value) => {
-    setInputValues(prev => ({ ...prev, [field]: value }));
-  };
-  const handleAddReport1 = () => {
-    // Update the card fields with the selected fields
-    setCardFields(selectedbaocao);
-    setIsModalbaocao(false); // Close the modal
-  };
+  
   const columns = [
     { title: 'STT', dataIndex: 'stt', key: 'stt', align: 'center' },
     { title: 'Tên mẫu phiếu', dataIndex: 'TenMauPhieu', key: 'TenMauPhieu', align: 'left' },
@@ -340,7 +334,12 @@ const Nguoidung = () => {
           {cardFields.map(field => (
             <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
               <label className="block font-semibold mb-1">{field}</label>
-              <Input placeholder={`Nhập ${field}`} className="w-full border border-gray-300 rounded-md p-2" />
+              <Input 
+                placeholder={`Nhập ${field}`} 
+                value={inputValues[field] || ''} // Bind input value to state
+                onChange={(e) => handleInputChange(field, e.target.value)} // Update state on input change
+                className="w-full border border-gray-300 rounded-md p-2" 
+              />
             </div>
           ))}
         </Card>
@@ -353,21 +352,30 @@ const Nguoidung = () => {
   <p className="ml-2">{inputValues[selectedFields[1]] || ''}</p>
  {/* This will show the second selected field or default to '2' */}
   </div>
-
   {/* Centered Paragraph */}
   <p className="mb-2">{inputValues[selectedFields[2]] || ''}</p>
-
   {/* Mẫu Phiếu Box */}
   <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
     <b className="text-lg" style={{ color: 'black', textAlign: 'center' ,marginLeft: '400px',}}>MẪU PHIẾU</b>
+    
+    <div className="flex justify-center mt-4">
+            {selectedCriteriaFields.map(field => (
+              <div key={field} className="mx-2">
+                <span className="font-semibold">{field}: </span>
+                <span>{criteriaInputValues[field]}</span>
+              </div>
+            ))}
+          </div>
+          {/* */ }
     {/* Có thể thêm preview mẫu phiếu ở đây */}
   </div>
-
+  
   {/* Bottom Paragraphs */}
   <div className="flex flex-col items-end mt-2 w-full"> {/* Align items to the right */}
-    <p className="mb-2">1</p> {/* This will be above */}
-    <p>1</p> {/* This will be below */}
+  <p className="mb-2">{inputValues[cardFields[0]] || ''}</p>
+  <p>{inputValues[cardFields[1]] || ''}</p>
   </div>
+
 </div>
           </div>
         </Modal>
