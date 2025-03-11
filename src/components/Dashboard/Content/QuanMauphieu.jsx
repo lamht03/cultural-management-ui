@@ -1,13 +1,17 @@
 // màn mãu phiếu
 import React, { useState, useEffect } from 'react';
-import { Button, Layout, Table, Input, Select, message, DatePicker, Modal, Card } from 'antd';
-import { EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Button, Layout, Table, Input, Select, message, DatePicker, Modal, Card  } from 'antd';
+import { EditOutlined, DeleteOutlined, DownloadOutlined  } from '@ant-design/icons';
 import '../../../assets/css/Nguoidung.css';
 import axiosInstance from '../../../utils/axiosInstance';
 const { Option } = Select;
 const { Content } = Layout;
 const { Search } = Input;
+
 const Nguoidung = () => {
+  const [selectedChildren, setSelectedChildren] = useState([]);
+  const [chiTieuList, setChiTieuList] = useState([]);
+  const [tieuChiList, setTieuChiList] = useState([]);
   const [criteriaInputValues, setCriteriaInputValues] = useState({});
   const [isModalbaocao, setIsModalbaocao] = useState(false);
   const [selectedbaocao, setSelectedbaocao] = useState([]);
@@ -57,20 +61,35 @@ const Nguoidung = () => {
 };
   // màn chỉ tiêu 
   const handleIndicatorFieldSelect = (value) => {
-    // Update selected indicator fields
     setSelectedIndicatorFields(value);
-  
-    // Initialize input values for selected indicator fields
-    const newIndicatorFieldValues = {};
+
+    // Khởi tạo giá trị input
+    const newIndicatorFieldValues = { ...criteriaFieldValues };
     value.forEach(field => {
-      if (!criteriaFieldValues[field]) { // You might want to use a different state for indicator field values
-        newIndicatorFieldValues[field] = ''; // Initialize with empty string
-      }
+        if (!newIndicatorFieldValues[field]) {
+            newIndicatorFieldValues[field] = ''; // Mặc định rỗng
+        }
     });
-  
-    // Assuming you want to keep track of indicator field values separately
-    setCriteriaFieldValues(prev => ({ ...prev, ...newIndicatorFieldValues }));
-  };
+    setCriteriaFieldValues(newIndicatorFieldValues);
+
+    // Lấy danh sách các children
+    let allChildren = [];
+    value.forEach(field => {
+        const selectedIndicator = chiTieuList.find(item => item.TenChiTieu === field);
+        if (selectedIndicator) {
+            const children = chiTieuList.filter(child => child.ChiTieuChaID === selectedIndicator.ChiTieuID);
+            allChildren = [...allChildren, ...children];
+        }
+    });
+
+    setSelectedChildren(allChildren);
+};
+const handleSaveIndicatorFields = () => {
+  console.log("Selected Indicator Fields:", selectedIndicatorFields);
+  setIsAddIndicatorFieldModalVisible(false);
+};
+
+
   
   const handleAddField = () => {
     setIsAddFieldModalVisible(true);
@@ -129,17 +148,19 @@ const Nguoidung = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [loaiMauPhieuResponse, dataResponse] = await Promise.all([
+        const [loaiMauPhieuResponse, dataResponse, tieuChiResponse, chiTieuResponse] = await Promise.all([
           axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20'),
           axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20'),
+          axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi?pageNumber=1&pageSize=20'), // Fetching criteria data
+          axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu?pageNumber=1&pageSize=20'), // Fetching Chi Tieu data
         ]);
-
+  
         if (loaiMauPhieuResponse.data.status === 1) {
           setLoaiMauPhieuList(loaiMauPhieuResponse.data.data);
         } else {
           message.error('Không thể lấy dữ liệu Loại Mẫu Phiếu');
         }
-
+  
         if (dataResponse.data.Status === 1) {
           const formattedData = dataResponse.data.Data.map((item, index) => ({
             key: item.MauPhieuID,
@@ -152,11 +173,25 @@ const Nguoidung = () => {
         } else {
           message.error(dataResponse.data.Message || 'Không thể lấy dữ liệu');
         }
+  
+        // Handling the criteria data response
+        if (tieuChiResponse.data.status === 1) {
+          setTieuChiList(tieuChiResponse.data.data); // Assuming the data is in the 'data' field
+        } else {
+          message.error('Không thể lấy dữ liệu Tiêu Chí');
+        }
+  
+        // Handling the Chi Tieu data response
+        if (chiTieuResponse.data.status === 1) {
+          setChiTieuList(chiTieuResponse.data.data); // Assuming the data is in the 'data' field
+        } else {
+          message.error('Không thể lấy dữ liệu Chi Tiêu');
+        }
       } catch (err) {
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
-
+  
     fetchData();
   }, []);
   const handleDelete = async () => {
@@ -309,20 +344,42 @@ const Nguoidung = () => {
                   </div>
                 ))}
               </Card>
-
               {/* Card for "Phần chỉ tiêu" */}
               <Card 
-  title="Phần chỉ tiêu" 
-  extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>} 
-  className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+    title="Phần chỉ tiêu" 
+    extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>} 
+    className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
 >
-  <p className="text-sm text-gray-500">Các trường thông tin</p>
-  {selectedIndicatorFields.map(field => (
-    <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-      <label className="block font-semibold mb-1">{field}</label>
-    </div>
-  ))}
+    <p className="text-sm text-gray-500">Các trường thông tin</p>
+
+    {selectedIndicatorFields.map(field => {
+        const parentIndicator = chiTieuList.find(item => item.TenChiTieu === field);
+
+        return (
+            <div key={field} className="mb-4 border border-gray-300 rounded-md overflow-hidden">
+                {/* Chỉ tiêu cha (Tiêu đề lớn) */}
+                <div className="bg-gray-100 px-3 py-2 font-semibold">
+                    {field}
+                </div>
+
+                {/* Hiển thị chỉ tiêu con (có viền đỏ) */}
+                {selectedChildren
+                    .filter(child => child.ChiTieuChaID === parentIndicator?.ChiTieuID)
+                    .map(child => (
+                        <div 
+                            key={child.ChiTieuID} 
+                            className="border border-red-500 p-2 m-2 rounded-md flex justify-between items-center"
+                        >
+                            <span>{child.TenChiTieu}</span>
+                        </div>
+                    ))}
+
+            </div>
+        );
+    })}
 </Card>
+
+
 
               {/* Card for "Phần báo cuối" */}
               <Card 
@@ -358,15 +415,14 @@ const Nguoidung = () => {
   <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
     <b className="text-lg" style={{ color: 'black', textAlign: 'center' ,marginLeft: '400px',}}>MẪU PHIẾU</b>
 
-    <div className="flex justify-start mt-4">
-  {selectedCriteriaFields.map(field => (
-    <div key={field} className="mx-2">
-      <span className="font-semibold">{field}: </span>
-      <span>{criteriaInputValues[field]}</span>
+    <div className="flex justify-between mt-4 border border-gray-300 p-2 rounded-lg w-full">
+  {selectedCriteriaFields.map((field, index) => (
+    <div key={index} className="flex-1 text-center">
+      <span className="font-semibold">{field}</span>
     </div>
   ))}
 </div>
-          <div className="flex flex-col items-start mt-4">
+<div className="flex flex-col items-start mt-4 border border-gray-300 p-2 rounded-lg w-full">
   {selectedIndicatorFields.map(field => (
     <div key={field} className="mb-2">
       <span className="font-semibold">{field}: </span>
@@ -374,19 +430,7 @@ const Nguoidung = () => {
     </div>
   ))}
 </div>
-
-
-
-          {/* */ }
-    {/* mèn chi tiêu */}
-    <div className="flex justify-center mt-4">
-      
-        
-     
-    </div>
-    
   </div>
-  
   {/* Bottom Paragraphs */}
   <div className="flex flex-col items-end mt-2 w-full"> {/* Align items to the right */}
   <p className="mb-2">{inputValues[cardFields[0]] || ''}</p>
@@ -479,71 +523,47 @@ const Nguoidung = () => {
         value={selectedCriteriaFields}
         onChange={handleCriteriaFieldSelect}
       >
-        <Option value="Tiêu chí 1" disabled={selectedCriteriaFields.includes("Tiêu chí 1")}>
-          Tiêu chí 1
-        </Option>
-        <Option value="Tiêu chí 2" disabled={selectedCriteriaFields.includes("Tiêu chí 2")}>
-          Tiêu chí 2
-        </Option>
-        <Option value="Tiêu chí 3" disabled={selectedCriteriaFields.includes("Tiêu chí 3")}>
-          Tiêu chí 3
-        </Option>
+        {tieuChiList.map(item => (
+          <Option key={item.TieuChiID} value={item.TenTieuChi} disabled={selectedCriteriaFields.includes(item.TenTieuChi)}>
+            {item.TenTieuChi}
+          </Option>
+        ))}
       </Select>
     </div>
   </div>
 </Modal>
 <Modal
-  title="Thêm chỉ tiêu"
-  visible={isAddIndicatorFieldModalVisible}
-  onCancel={() => setIsAddIndicatorFieldModalVisible(false)}
-  footer={[
-    <Button key="cancel" onClick={() => setIsAddIndicatorFieldModalVisible(false)}>
-      Hủy
-    </Button>,
-    <Button 
-      key="save" 
-      type="primary" 
-      onClick={() => {
-        console.log("Selected Indicator Fields:", selectedIndicatorFields);
-        setIsAddIndicatorFieldModalVisible(false);
-      }}
-    >
-      Lưu
-    </Button>,
-  ]}
+    title="Thêm chỉ tiêu"
+    visible={isAddIndicatorFieldModalVisible}
+    onCancel={() => setIsAddIndicatorFieldModalVisible(false)}
+    footer={[
+        <Button key="cancel" onClick={() => setIsAddIndicatorFieldModalVisible(false)}>Hủy</Button>,
+        <Button key="save" type="primary" onClick={handleSaveIndicatorFields}>Lưu</Button>,
+    ]}
 >
-  <div>
-    <div className="flex flex-col mb-4">
-      <label className="block text-sm font-medium text-gray-700">
-        Chỉ tiêu <span className="text-red-500">*</span>
-      </label>
-      <Select
-        mode="multiple"
-        allowClear
-        placeholder="Chọn chỉ tiêu"
-        className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-        value={selectedIndicatorFields}
-        onChange={handleIndicatorFieldSelect}
-      >
-        <Option value="Chỉ tiêu 1" disabled={selectedIndicatorFields.includes("Chỉ tiêu 1")}>
-          Chỉ tiêu 1
-        </Option>
-        <Option value="Chỉ tiêu 2" disabled={selectedIndicatorFields.includes("Chỉ tiêu 2")}>
-          Chỉ tiêu 2
-        </Option>
-        <Option value="Chỉ tiêu 3" disabled={selectedIndicatorFields.includes("Chỉ tiêu 3")}>
-          Chỉ tiêu 3
-        </Option>
-        <Option value="Chỉ tiêu 4" disabled={selectedIndicatorFields.includes("Chỉ tiêu 4")}>
-          Chỉ tiêu 4
-        </Option>
-        <Option value="Chỉ tiêu 5" disabled={selectedIndicatorFields.includes("Chỉ tiêu 5")}>
-          Chỉ tiêu 5
-        </Option>
-      </Select>
+    <div>
+        <div className="flex flex-col mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+                Chỉ tiêu <span className="text-red-500">*</span>
+            </label>
+            <Select
+                mode="multiple"
+                allowClear
+                placeholder="Chọn chỉ tiêu"
+                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                value={selectedIndicatorFields}
+                onChange={handleIndicatorFieldSelect}
+            >
+                {chiTieuList.map(item => (
+                    <Option key={item.ChiTieuID} value={item.TenChiTieu} disabled={selectedIndicatorFields.includes(item.TenChiTieu)}>
+                        {item.TenChiTieu}
+                    </Option>
+                ))}
+            </Select>
+        </div>
     </div>
-  </div>
 </Modal>
+
 <Modal
           title="Thêm báo cáo cuối"
           visible={isModalbaocao}
