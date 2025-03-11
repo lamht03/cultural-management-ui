@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { message } from 'antd';
-const API_URL = 'http://192.168.100.32:2003/api';
+const API_URL = 'http://192.168.141.149:2003/api';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {

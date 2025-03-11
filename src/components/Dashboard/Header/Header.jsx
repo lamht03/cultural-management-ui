@@ -81,7 +81,7 @@ const Header = () => {
       );
   
       // Check the API response
-      if (response.data.Status === 1) {
+      if (response.data.status === 1) {
         message.success('Mật Khẩu thay đổi thành công!');
         return;
       } else {
