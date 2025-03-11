@@ -1,4 +1,4 @@
-import Draggable from "react-draggable";
+// màn mãu phiếu
 import React, { useState, useEffect } from 'react';
 import { Button, Layout, Table, Input, Select, message, DatePicker, Modal, Card } from 'antd';
 import { EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
@@ -231,7 +231,7 @@ const Nguoidung = () => {
             </Button>,
           ]}
           width={10000}
-          modalRender={(modal) => <Draggable>{modal}</Draggable>} 
+         
         >
           <div className="flex gap-4">
             {/* Left Column */}
@@ -357,17 +357,34 @@ const Nguoidung = () => {
   {/* Mẫu Phiếu Box */}
   <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
     <b className="text-lg" style={{ color: 'black', textAlign: 'center' ,marginLeft: '400px',}}>MẪU PHIẾU</b>
-    
-    <div className="flex justify-center mt-4">
-            {selectedCriteriaFields.map(field => (
-              <div key={field} className="mx-2">
-                <span className="font-semibold">{field}: </span>
-                <span>{criteriaInputValues[field]}</span>
-              </div>
-            ))}
-          </div>
+
+    <div className="flex justify-start mt-4">
+  {selectedCriteriaFields.map(field => (
+    <div key={field} className="mx-2">
+      <span className="font-semibold">{field}: </span>
+      <span>{criteriaInputValues[field]}</span>
+    </div>
+  ))}
+</div>
+          <div className="flex flex-col items-start mt-4">
+  {selectedIndicatorFields.map(field => (
+    <div key={field} className="mb-2">
+      <span className="font-semibold">{field}: </span>
+      <span>{criteriaInputValues[field]}</span>
+    </div>
+  ))}
+</div>
+
+
+
           {/* */ }
-    {/* Có thể thêm preview mẫu phiếu ở đây */}
+    {/* mèn chi tiêu */}
+    <div className="flex justify-center mt-4">
+      
+        
+     
+    </div>
+    
   </div>
   
   {/* Bottom Paragraphs */}
