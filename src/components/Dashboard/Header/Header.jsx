@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { data, Link, useNavigate } from 'react-router-dom';
 import {LockOutlined,UserOutlined,BellOutlined,QuestionCircleOutlined,} from '@ant-design/icons';
 import { Drawer, Dropdown, Menu, message, Modal, Form, Input, Button } from 'antd';
 import logo from '../../../assets/img/logo.png';
@@ -51,36 +51,50 @@ const Header = () => {
 
   const handleUpdatePassword = async (values) => {
     try {
-      const access_token = localStorage.getItem('accessToken');
-      const decodedToken = jwtDecode(access_token);
-      const NguoiDungID = decodedToken.NguoiDungID; // Extract NguoiDungID from token
-
-      // Call API to change password
+      // Retrieve the access token from localStorage
+      const accessToken = localStorage.getItem('token');
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        // Optionally, redirect to the login page
+        return;
+      }
+  
+      // Client-side check: Ensure new password and confirm password match
+      if (values.MatKhauMoi !== values.XacNhanMatKhauMoi) {
+        message.error("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+        return;
+      }
+  
+      // Make the API call with the token in the header
       const response = await axiosInstance.post(
-        `/v1/HeThongNguoiDung/DoiMatKhau`,
+        '/v1/HeThongNguoiDung/DoiMatKhau',
         {
-          NguoiDungID: NguoiDungID, // Use NguoiDungID extracted from token
-          MatKhauCu: values.MatKhauCu, // Current password from form
-          MatKhauMoi: values.MatKhauMoi, // New password from form
-          XacNhanMatKhauMoi: values.XacNhanMatKhauMoi, // Confirm new password from form
+          MatKhauCu: values.MatKhauCu,
+          MatKhauMoi: values.MatKhauMoi,
+          XacNhanMatKhauMoi: values.XacNhanMatKhauMoi,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
-
-      // Check API response
+  
+      // Check the API response
       if (response.data.Status === 1) {
-        message.success(response.data.Message); // Show success message
-        setModalOpen(false);
-        form.resetFields();
+        message.success('Mật Khẩu thay đổi thành công!');
+        return;
       } else {
-        message.error(response.data.Message); // Show error message
+        message.error(response.data.Message);
+        return;
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.Message || 'Đã xảy ra lỗi!';
+      const errorMessage =
+        error.response?.data?.Message || "Đã xảy ra lỗi khi đổi mật khẩu!";
       message.error(errorMessage);
-      console.error('Update password error:', error);
+      console.error("Error changing password:", error);
     }
-  };
-
+  };  
   const handleCancel = () => {
     setModalOpen(false); // Close modal
     form.resetFields(); // Clear form data
