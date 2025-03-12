@@ -15,8 +15,9 @@ const contentStyle = {
   border: '1px solid #ccc',
   padding: '20px',
 };
-
 const Nguoidung = () => {
+  const [showUserList, setShowUserList] = useState(true);
+  const [addedUsers, setAddedUsers] = useState([]); // State to 
   const [usersData, setUsersData] = useState([]);
   const [permissionsData, setPermissionsData] = useState([]);
   const [searchName, setSearchName] = useState('');
@@ -29,12 +30,27 @@ const Nguoidung = () => {
   const [editRecord, setEditRecord] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [userForm] = Form.useForm(); // Form for adding user
-
   const handleAddUserCancel = () => {
     setIsAddUserModalVisible(false);
     userForm.resetFields(); // Reset the form fields when closing the modal
+    setShowUserList(true); // Show the user list again when modal is closed
   };
-
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get('/v1/HeThongCanBo/DanhSachCanBo?pageNumber=1&pageSize=30');
+      if (response.data) { // Check if data exists
+        setUsersData(response.data.data); // Set users data
+      } else {
+        message.error('Failed to fetch users data.');
+      }
+    } catch (error) {
+      message.error('Error while fetching users data.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   // Fetch data from API
   const fetchGroups = async () => {
     setLoading(true);
@@ -63,6 +79,7 @@ const Nguoidung = () => {
 
   useEffect(() => {
     fetchGroups();
+    
   }, []);
 
   // Open modal for adding or editing
@@ -74,9 +91,8 @@ const Nguoidung = () => {
     }
     setIsModalVisible(true);
   };
-
   // Handle adding a user to a group
-  const handleAddUser = async () => {
+  const handleAddUser  = async () => {
     try {
       const values = await userForm.validateFields(); // Validate form fields
 
@@ -88,8 +104,14 @@ const Nguoidung = () => {
       // Send the POST request to the API
       const response = await axiosInstance.post('/v1/HeThongPhanQuyen/ThemNguoiDungVaoNhomPhanQuyen', payload);
       // Check the response status
-      if (response.data.Status === 1) {
+      if (response.data.status === 1) {
         message.success('User  added to group successfully.');
+        window.location.reload();
+        // Add the user to the addedUsers state
+        const addedUser  = usersData.find(user => user.NguoiDungID === values.NguoiDungID);
+        if (addedUser ) {
+          setAddedUsers(prev => [...prev, addedUser ]); // Add user to the list
+        }
         setIsAddUserModalVisible(false); // Close the modal
         userForm.resetFields(); // Reset the form field
       } else {
@@ -102,6 +124,7 @@ const Nguoidung = () => {
   };
   // Open modal for adding user to group
   const showAddUserModal = () => {
+    fetchUsers(); // Fetch users when opening the modal
     setIsAddUserModalVisible(true);
   };
   // Open modal for adding function to group
@@ -169,9 +192,9 @@ const Nguoidung = () => {
         NhomPhanQuyenID: nhomPhanQuyenID,
       };
       const response = await axiosInstance.post('/v1/HeThongPhanQuyen/XoaNguoiDungKhoiNhomPhanQuyen', payload);
-      
-      if (response.data.Status === 1) {
+      if (response.data.status === 1) {
         message.success('User  deleted successfully.');
+        window.location.reload();
       } else {
         message.error('Failed to delete the user.');
       }
@@ -182,14 +205,11 @@ const Nguoidung = () => {
       setLoading(false);
     }
   };
-  
   const handleNameChange = (e) => setSearchName(e.target.value);
   const onSearch = (value) => setSearchName(value);
-
   const filteredData = dataSource.filter((item) =>
     item.hoTen.toLowerCase().includes(searchName.toLowerCase())
   );
-  
   const handleSettingsClick = async (record) => {
     setLoading(true); // Start loading
     const nhomPhanQuyenID = record.key; // Get the ID from the record
@@ -254,7 +274,6 @@ const Nguoidung = () => {
       ),
     },
   ];
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
@@ -311,7 +330,7 @@ const Nguoidung = () => {
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h1 style={{ fontSize: 19 }}>QUẢN LÝ PHÂN QUYỀN NGƯỜI DÙNG</h1>
+              <h1 className="text-2xl font-bold mb-6 text-center">QUẢN LÝ PHÂN QUYỀN NGƯỜI DÙNG</h1>
               <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
                 Thêm
               </Button>
@@ -336,36 +355,38 @@ const Nguoidung = () => {
               <div style={{ display: 'flex', gap: '10px', backgroundColor: '#fff', color: '#000', marginTop: '20px', width: '100%', height: '300px', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f0f0f0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm người dùng</h3>
+                    <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm người dùng</h3>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showAddUserModal}>
                       Thêm
                     </Button>
                   </div>
                   {/* Render user data here */}
-                  <div style={{ marginTop: '10px' }}>
-  {usersData.length > 0 ? (
-    usersData.map(user => (
-      <span key={user.NguoiDungID} style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
-        <span style={{ marginRight: '5px' }}>{user.TenNguoiDung}</span>
-        <Popconfirm
-          title={`Bạn có chắc muốn xóa ${user.TenNguoiDung} không?`}
-          onConfirm={() => handleDeleteUser (user.NguoiDungID, user.NhomPhanQuyenID)}
-          okText="Có"
-          cancelText="Không"
-        >
-          <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
-        </Popconfirm>
-      </span>
-    ))
-  ) : (
-    <span>Không có người dùng nào.</span> // Message when no users are found
-  )}
-</div>
+                  {showUserList && (
+          <div style={{ marginTop: '10px' }}>
+            {usersData.length > 0 ? (
+              usersData.map(user => (
+                <span key={user.NguoiDungID} style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                  <span style={{ marginRight: '5px' }}>{user.TenNguoiDung}</span>
+                  <Popconfirm
+                    title={`Bạn có chắc muốn xóa ${user.TenNguoiDung} không?`}
+                    onConfirm={() => handleDeleteUser (user.NguoiDungID, user.NhomPhanQuyenID)}
+                    okText="Có"
+                    cancelText="Không"
+                  >
+                    <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
+                  </Popconfirm>
+                </span>
+              ))
+            ) : (
+              <span>Không có người dùng nào.</span>
+            )}
+          </div>
+        )}
                 </div>
                 {/* Hàng thứ hai */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#e0e0e0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: 11, marginTop: '-26px' }}>Thêm chức năng cho nhóm</h3>
+                    <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm chức năng cho nhóm</h3>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
                       Thêm
                     </Button>
@@ -392,7 +413,7 @@ const Nguoidung = () => {
             </div>
           </>
         )}
-        <Modal
+     <Modal
           title="Thêm người dùng"
           visible={isAddUserModalVisible}
           onCancel={handleAddUserCancel}
@@ -402,9 +423,15 @@ const Nguoidung = () => {
             <Form.Item
               name="NguoiDungID"
               label="ID Người Dùng"
-              rules={[{ required: true, message: 'Vui lòng nhập ID người dùng!' }]}
+              rules={[{ required: true, message: 'Vui lòng chọn người dùng!' }]}
             >
-              <Input />
+              <Select placeholder="Chọn người dùng" loading={loading}>
+                {usersData.map(user => (
+                  <Option key={user.NguoiDungID} value={user.NguoiDungID}>
+                    {user.TenNguoiDung}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item
               name="NhomPhanQuyenID"
@@ -424,5 +451,4 @@ const Nguoidung = () => {
     </Layout>
   );
 };
-
 export default Nguoidung;

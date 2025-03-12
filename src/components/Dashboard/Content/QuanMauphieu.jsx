@@ -9,6 +9,11 @@ const { Content } = Layout;
 const { Search } = Input;
 
 const Nguoidung = () => {
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+const [recordToEdit, setRecordToEdit] = useState(null);
+  const [tenMauPhieu, setTenMauPhieu] = useState('');
+  const [maMauPhieu, setMaMauPhieu] = useState('');
+    const [loaiMauPhieuID, setLoaiMauPhieuID] = useState(null);
   const [selectedChildren, setSelectedChildren] = useState([]);
   const [chiTieuList, setChiTieuList] = useState([]);
   const [tieuChiList, setTieuChiList] = useState([]);
@@ -130,9 +135,9 @@ const Nguoidung = () => {
       align: 'center',
       render: (_, record) => (
         <span>
-          <Button type="link" style={{ color: 'black', fontSize: '20px' }}>
-            <EditOutlined />
-          </Button>
+          <Button type="link" style={{ color: 'black', fontSize: '20px' }} onClick={() => handleEdit(record)}>
+                    <EditOutlined />
+                </Button>
           <Button
             type="link"
             danger
@@ -151,7 +156,13 @@ const Nguoidung = () => {
       ),
     },
   ];
-
+  const handleEdit = (record) => {
+    setRecordToEdit(record);
+    setTenMauPhieu(record.TenMauPhieu);
+    setMaMauPhieu(record.MaMauPhieu);
+    setLoaiMauPhieuID(record.LoaiMauPhieuID);
+    setIsEditModalVisible(true);
+};
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -216,10 +227,57 @@ const Nguoidung = () => {
     }
   };
 
-  const Luu = () => {
-    setIsModalVisible(false);
-  };
+  const Luu = async () => {
+    try {
+        const response = await axiosInstance.post('/RpMauPhieu/Insert', {
+            TenMauPhieu: tenMauPhieu,
+            MaMauPhieu: maMauPhieu,
+            LoaiMauPhieuID: loaiMauPhieuID,
+            TieuChiS: selectedCriteriaFields.join(', '),
+            ChiTieuS: selectedFields.join(', '),
+            ThangBaoCao : '1',
+            NguoiTao : '1',
+            KyBaoCaoID : 1
+        });
 
+        console.log('Success:', response.data);
+        // Optionally, you can reset the form fields here
+        setTenMauPhieu('');
+        setMaMauPhieu('');
+        setLoaiMauPhieuID(0);
+        
+    } catch (error) {
+        console.error('Error:', error);
+    } finally {
+        setIsModalVisible(false);
+    }
+};
+const handleUpdate = async () => {
+  try {
+      const response = await axiosInstance.post(`/RpMauPhieu/Update`, {
+          MauPhieuID: recordToEdit.key, // Assuming you have a unique identifier
+          TenMauPhieu: tenMauPhieu,
+          MaMauPhieu: maMauPhieu,
+          LoaiMauPhieuID: loaiMauPhieuID,
+          TieuChiS: selectedCriteriaFields.join(', '),
+          ChiTieuS: selectedFields.join(', '),
+          ThangBaoCao: '1',
+          NguoiTao: '1',
+          KyBaoCaoID: 1
+      });
+
+      if (response.data.status === 1) {
+          message.success('Cập nhật thành công!');
+          // Optionally, refresh the data or update the local state
+         
+      } else {
+          message.error(response.data.Message || 'Cập nhật thất bại!');
+      }
+  } catch (error) {
+      console.error('Error updating record:', error);
+      message.error('Lỗi khi cập nhật: ' + error.message);
+  }
+};
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '20px', backgroundColor: '#fff', border: '1px solid #ccc' }}>
@@ -280,42 +338,47 @@ const Nguoidung = () => {
             <div className="flex-1">
               {/* Loại mẫu phiếu */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Loại mẫu phiếu <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  placeholder="Chọn loại mẫu phiếu"
-                  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                >
-                  {loaiMauPhieuList.map(item => (
-                    <Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-                      {item.TenLoaiMauPhieu}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Loại mẫu phiếu <span className="text-red-500">*</span>
+                            </label>
+                            <Select
+                                placeholder="Chọn loại mẫu phiếu"
+                                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                                onChange={value => setLoaiMauPhieuID(value)} // Update state on change
+                            >
+                                {loaiMauPhieuList.map(item => (
+                                    <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
+                                        {item.TenLoaiMauPhieu}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </div>
 
               {/* Tên biểu mẫu */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Tên biểu mẫu <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  placeholder="Nhập tên biểu mẫu"
-                  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                />
-              </div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Tên biểu mẫu <span className="text-red-500">*</span>
+                            </label>
+                            <Input
+                                placeholder="Nhập tên biểu mẫu"
+                                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                                value={tenMauPhieu} // Bind state to input
+                                onChange={e => setTenMauPhieu(e.target.value)} // Update state on change
+                            />
+                        </div>
 
               {/* Mã mẫu phiếu */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Mã mẫu phiếu <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  placeholder="Nhập mã mẫu phiếu"
-                  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                />
-              </div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Mã mẫu phiếu <span className="text-red-500">*</span>
+                            </label>
+                            <Input
+                                placeholder="Nhập mã mẫu phiếu"
+                                className="mt-1 block w-full border border-gray-300 rounded -lg shadow-sm"
+                                value={maMauPhieu} // Bind state to input
+                                onChange={e => setMaMauPhieu(e.target.value)} // Update state on change
+                            />
+                        </div>
 
               {/* Card for "Phần đầu báo cáo" */}
               <Card
@@ -425,13 +488,14 @@ const Nguoidung = () => {
                 </div>
                 <div className="flex flex-col items-start mt-4 border border-gray-300 p-2 rounded-lg w-full">
   {selectedChildren.map(child => {
-    // Tìm chỉ tiêu cha dựa trên ChiTieuChaID
     const parent = chiTieuList.find(item => item.ChiTieuID === child.ChiTieuChaID);
     const parentName = parent ? parent.TenChiTieu : '';
     return (
-      <div key={child.ChiTieuID} className="mb-2">
-        <span className="font-semibold">{parentName} ; {child.TenChiTieu}: </span>
-        <span>{criteriaFieldValues[child.TenChiTieu] || ""}</span>
+      <div key={child.ChiTieuID} className="mb-1">
+        {parentName ? (
+          <span className="font-semibold">{parentName}</span>
+        ) : null}
+        <div className="ml-4">{child.TenChiTieu}</div>
       </div>
     );
   })}
@@ -597,7 +661,74 @@ const Nguoidung = () => {
             </Option>
           </Select>
         </Modal>
+        <Modal
+    title="Sửa mẫu phiếu"
+    visible={isEditModalVisible}
+    onCancel={() => setIsEditModalVisible(false)}
+    width={1000}
+    footer={[
+        <Button key="cancel" onClick={() => setIsEditModalVisible(false)}>
+            Hủy
+        </Button>,
+        <Button
+            key="save"
+            type="primary"
+            onClick={async () => {
+                await handleUpdate(); // Call the update function
+                setIsEditModalVisible(false);
+            }}
+        >
+            Lưu
+        </Button>,
+    ]}
+>
+    <div className="flex gap-4">
+        {/* Loại mẫu phiếu */}
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+                Loại mẫu phiếu <span className="text-red-500">*</span>
+            </label>
+            <Select
+                placeholder="Chọn loại mẫu phiếu"
+                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                value={loaiMauPhieuID}
+                onChange={value => setLoaiMauPhieuID(value)} // Update state on change
+            >
+                {loaiMauPhieuList.map(item => (
+                    <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
+                        {item.TenLoaiMauPhieu}
+                    </Select.Option>
+                ))}
+            </Select>
+        </div>
 
+        {/* Tên biểu mẫu */}
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+                Tên biểu mẫu <span className="text-red-500">*</span>
+            </label>
+            <Input
+                placeholder="Nhập tên biểu mẫu"
+                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                value={tenMauPhieu} // Bind state to input
+                onChange={e => setTenMauPhieu(e.target.value)} // Update state on change
+            />
+        </div>
+
+        {/* Mã mẫu phiếu */}
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+                Mã mẫu phiếu <span className="text-red-500">*</span>
+            </label>
+            <Input
+                placeholder="Nhập mã mẫu phiếu"
+                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+                value={maMauPhieu} // Bind state to input
+                onChange={e => setMaMauPhieu(e.target.value)} // Update state on change
+            />
+        </div>
+    </div>
+</Modal>
         {/* Delete Confirmation Modal */}
         <Modal
           title="Xác nhận xóa"

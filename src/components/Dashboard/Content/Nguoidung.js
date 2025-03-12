@@ -3,10 +3,8 @@ import { Button, Layout, Table, Input, Select, message, Spin, Modal, Form } from
 import { EditOutlined, DeleteOutlined, RollbackOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../utils/axiosInstance'; // Import axios
 import '../../../assets/css/Nguoidung.css'; // File CSS for table styling
-
 const { Content } = Layout;
 const { Search } = Input;
-
 const columns = (handleEdit, handleDelete, handleResetPassword) => [
   {
     title: 'STT',
@@ -72,7 +70,6 @@ const columns = (handleEdit, handleDelete, handleResetPassword) => [
     ),
   },
 ];
-
 const contentStyle = {
   width: '100%',
   height: '800px',
@@ -82,7 +79,6 @@ const contentStyle = {
   border: '1px solid #ccc',
   padding: '20px',
 };
-
 const Nguoidung = () => {
   const [selectedCoQuanID, setSelectedCoQuanID] = useState(null);
   const [coQuanList, setCoQuanList] = useState([]);
@@ -92,7 +88,6 @@ const Nguoidung = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingRecord, setEditingRecord] = useState(null); 
-  
   const handleResetPassword = async (userId) => {
     try {
       const response = await axiosInstance.post(`/v1/HeThongNguoiDung/DatLaiMatKhau?userId=${userId}`);
@@ -108,7 +103,6 @@ const Nguoidung = () => {
     fetchData(); // Fetch data when component mounts
     fetchCoQuan(); // Fetch organization data
   }, [searchName, selectedCoQuanID]); // Refetch data when searchName or selectedCoQuanID changes
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -137,7 +131,6 @@ const Nguoidung = () => {
       setLoading(false);
     }
   };
-
   const flattenCoQuanData = (data) => {
     let result = [];
     const recurse = (items) => {
@@ -154,7 +147,6 @@ const Nguoidung = () => {
     recurse(data);
     return result;
   };
-
   const fetchCoQuan = async () => {
     try {
       const response = await axiosInstance.get('/v1/DanhMucCoQuanDonVi/DanhSachCoQuan');
@@ -169,7 +161,6 @@ const Nguoidung = () => {
       message.error('Đã xảy ra lỗi khi lấy danh sách cơ quan.');
     }
   };
-
   const postData = async (requestData) => {
     try {
       const response = await axiosInstance.post('/v1/HeThongCanBo/ThemMoiCanBo', requestData);
@@ -184,7 +175,6 @@ const Nguoidung = () => {
       message.error('Đã xảy ra lỗi khi gửi dữ liệu.');
     }
   };
-
   const updateData = async (requestData) => {
     try {
       const response = await axiosInstance.post('/v1/HeThongCanBo/SuaThongTinCanBo', requestData);
@@ -199,7 +189,6 @@ const Nguoidung = () => {
       message.error('Đã xảy ra lỗi khi cập nhật dữ liệu.');
     }
   };
-
   const handleOk = () => {
     form.validateFields()
       .then(values => {
@@ -226,7 +215,6 @@ const Nguoidung = () => {
         console.log('Validate Failed:', info);
       });
   };
-
   const handleEdit = (record) => {
     setEditingRecord(record); // Set the record to be edited
     form.setFieldsValue({
@@ -244,7 +232,6 @@ const Nguoidung = () => {
     });
     setIsModalVisible(true); // Open the modal for editing
   };
-
   const handleDelete = (canBoId) => {
     Modal.confirm({
       title: 'Xác nhận xóa',
@@ -266,7 +253,6 @@ const Nguoidung = () => {
       },
     });
   };
-
   return (
     <Content style={contentStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
