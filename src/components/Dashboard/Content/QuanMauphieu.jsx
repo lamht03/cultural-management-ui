@@ -7,7 +7,6 @@ import axiosInstance from '../../../utils/axiosInstance';
 const { Option } = Select;
 const { Content } = Layout;
 const { Search } = Input;
-
 const Nguoidung = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 const [recordToEdit, setRecordToEdit] = useState(null);
@@ -161,6 +160,8 @@ const [recordToEdit, setRecordToEdit] = useState(null);
     setTenMauPhieu(record.TenMauPhieu);
     setMaMauPhieu(record.MaMauPhieu);
     setLoaiMauPhieuID(record.LoaiMauPhieuID);
+    setSelectedCriteriaFields(record.TieuChiS.split(', ')); // Assuming TieuChiS is a comma-separated string
+    setSelectedFields(record.ChiTieuS.split(', ')); // Assuming ChiTieuS is a comma-separated string
     setIsEditModalVisible(true);
 };
   useEffect(() => {
@@ -226,7 +227,7 @@ const [recordToEdit, setRecordToEdit] = useState(null);
       setDeleteModalVisible(false);
     }
   };
-
+// Mau Phieu
   const Luu = async () => {
     try {
         const response = await axiosInstance.post('/RpMauPhieu/Insert', {
@@ -235,8 +236,8 @@ const [recordToEdit, setRecordToEdit] = useState(null);
             LoaiMauPhieuID: loaiMauPhieuID,
             TieuChiS: selectedCriteriaFields.join(', '),
             ChiTieuS: selectedFields.join(', '),
-            ThangBaoCao : '1',
-            NguoiTao : '1',
+            ThangBaoCao : '',
+            NguoiTao : '',
             KyBaoCaoID : 1
         });
 
@@ -259,23 +260,25 @@ const handleUpdate = async () => {
           TenMauPhieu: tenMauPhieu,
           MaMauPhieu: maMauPhieu,
           LoaiMauPhieuID: loaiMauPhieuID,
-          TieuChiS: selectedCriteriaFields.join(', '),
-          ChiTieuS: selectedFields.join(', '),
-          ThangBaoCao: '1',
-          NguoiTao: '1',
-          KyBaoCaoID: 1
+          TieuChiS: selectedCriteriaFields.join(', '), // Join the selected criteria fields
+          ChiTieuS: selectedFields.join(','), // Join the selected fields
+          ThangBaoCao: '', // You can modify this as needed
+          NguoiTao: '', // You can modify this as needed
+          KyBaoCaoID: 1 // You can modify this as needed
       });
 
       if (response.data.status === 1) {
           message.success('Cập nhật thành công!');
           // Optionally, refresh the data or update the local state
-         
+          // For example, you might want to refetch the data or update the dataSource
       } else {
           message.error(response.data.Message || 'Cập nhật thất bại!');
       }
   } catch (error) {
       console.error('Error updating record:', error);
       message.error('Lỗi khi cập nhật: ' + error.message);
+  } finally {
+      setIsEditModalVisible(false); // Close the modal after the operation
   }
 };
   return (
@@ -662,72 +665,195 @@ const handleUpdate = async () => {
           </Select>
         </Modal>
         <Modal
-    title="Sửa mẫu phiếu"
-    visible={isEditModalVisible}
-    onCancel={() => setIsEditModalVisible(false)}
-    width={1000}
-    footer={[
-        <Button key="cancel" onClick={() => setIsEditModalVisible(false)}>
-            Hủy
-        </Button>,
-        <Button
-            key="save"
-            type="primary"
-            onClick={async () => {
-                await handleUpdate(); // Call the update function
-                setIsEditModalVisible(false);
-            }}
-        >
-            Lưu
-        </Button>,
-    ]}
+  title="Sửa mẫu phiếu"
+  visible={isEditModalVisible}
+  onCancel={() => setIsEditModalVisible(false)}
+  footer={[
+    <Button key="cancel" onClick={() => setIsEditModalVisible(false)}>
+      Hủy
+    </Button>,
+    <Button key="save" type="primary" onClick={handleUpdate}>
+      Lưu
+    </Button>,
+  ]}
+  width={1000}
 >
-    <div className="flex gap-4">
-        {/* Loại mẫu phiếu */}
-        <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-                Loại mẫu phiếu <span className="text-red-500">*</span>
-            </label>
-            <Select
-                placeholder="Chọn loại mẫu phiếu"
-                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                value={loaiMauPhieuID}
-                onChange={value => setLoaiMauPhieuID(value)} // Update state on change
-            >
-                {loaiMauPhieuList.map(item => (
-                    <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-                        {item.TenLoaiMauPhieu}
-                    </Select.Option>
+  <div className="flex gap-4">
+    {/* Left Column */}
+    <div className="flex-1">
+      {/* Loại mẫu phiếu */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Loại mẫu phiếu <span className="text-red-500">*</span>
+        </label>
+        <Select
+          placeholder="Chọn loại mẫu phiếu"
+          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+          value={loaiMauPhieuID} // Bind state to select
+          onChange={value => setLoaiMauPhieuID(value)} // Update state on change
+        >
+          {loaiMauPhieuList.map(item => (
+            <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
+              {item.TenLoaiMauPhieu}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
+
+      {/* Tên biểu mẫu */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Tên biểu mẫu <span className="text-red-500">*</span>
+        </label>
+        <Input
+          placeholder="Nhập tên biểu mẫu"
+          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+          value={tenMauPhieu} // Bind state to input
+          onChange={e => setTenMauPhieu(e.target.value)} // Update state on change
+        />
+      </div>
+
+      {/* Mã mẫu phiếu */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Mã mẫu phiếu <span className="text-red-500">*</span>
+        </label>
+        <Input
+          placeholder="Nhập mã mẫu phiếu"
+          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+          value={maMauPhieu} // Bind state to input
+          onChange={e => setMaMauPhieu(e.target.value)} // Update state on change
+        />
+      </div>
+
+      {/* Card for "Phần đầu báo cáo" */}
+      <Card
+        title="Phần đầu báo cáo"
+        extra={<Button type="primary" onClick={handleAddField}>Thêm trường</Button>}
+        className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+      >
+        <p className="text-sm text-gray-500">Các trường thông tin</p>
+        {selectedFields.map(field => (
+          <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+            <label className="block font-semibold mb-1">{field}</label>
+            <Input
+              placeholder={`Nhập ${field}`}
+              value={inputValues[field] || ''}
+              onChange={(e) => handleInputChange(field, e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
+            />
+          </div>
+        ))}
+      </Card>
+
+      {/* Card for "Phần tiêu chí" */}
+      <Card
+        title="Phần tiêu chí"
+        extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>}
+        className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+      >
+        <p className="text-sm text-gray-500">Các trường thông tin</p>
+        {selectedCriteriaFields.map(field => (
+          <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+            <label className="block font-semibold mb-1">{field}</label>
+          </div>
+        ))}
+      </Card>
+
+      {/* Card for "Phần chỉ tiêu" */}
+      <Card
+        title="Phần chỉ tiêu"
+        extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>}
+        className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+      >
+        <p className="text-sm text-gray-500">Các trường thông tin</p>
+        {selectedIndicatorFields.map(field => {
+          const parentIndicator = chiTieuList.find(item => item.TenChiTieu === field);
+          return (
+            <div key={field} className="mb-4 border border-gray-300 rounded-md overflow-hidden">
+              {/* Chỉ tiêu cha */}
+              <div className="bg-gray-100 px-3 py-2 font-semibold">
+                {field}
+              </div>
+
+              {/* Hiển thị chỉ tiêu con với viền đỏ */}
+              {selectedChildren
+                .filter(child => child.ChiTieuChaID === parentIndicator?.ChiTieuID)
+                .map(child => (
+                  <div
+                    key={child.ChiTieuID}
+                    className="border border-red-500 p-2 m-2 rounded-md flex justify-between items-center"
+                  >
+                    <span>{child.TenChiTieu}</span>
+                  </div>
                 ))}
-            </Select>
-        </div>
+            </div>
+          );
+        })}
+      </Card>
 
-        {/* Tên biểu mẫu */}
-        <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-                Tên biểu mẫu <span className="text-red-500">*</span>
-            </label>
+      {/* Card for "Phần báo cuối" */}
+      <Card
+        title="Phần báo cuối"
+        extra={<Button type="primary" onClick={() => setIsModalbaocao(true)}>Thêm trường</Button>}
+        className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+      >
+        <p className="text-sm text-gray-500">Các trường thông tin</p>
+        {cardFields.map(field => (
+          <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+            <label className="block font-semibold mb-1">{field}</label>
             <Input
-                placeholder="Nhập tên biểu mẫu"
-                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                value={tenMauPhieu} // Bind state to input
-                onChange={e => setTenMauPhieu(e.target.value)} // Update state on change
+              placeholder={`Nhập ${field}`}
+              value={inputValues[field] || ''}
+              onChange={(e) => handleInputChange(field, e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
             />
-        </div>
-
-        {/* Mã mẫu phiếu */}
-        <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-                Mã mẫu phiếu <span className="text-red-500">*</span>
-            </label>
-            <Input
-                placeholder="Nhập mã mẫu phiếu"
-                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                value={maMauPhieu} // Bind state to input
-                onChange={e => setMaMauPhieu(e.target.value)} // Update state on change
-            />
-        </div>
+          </div>
+        ))}
+      </Card>
     </div>
+
+    {/* Right Column */}
+    <div className="flex-1 flex flex-col items-center">
+      {/* Top Paragraphs */}
+      <div className="flex justify-between w-full mb-2">
+        <p className="mr-2">{inputValues[selectedFields[0]] || ''}</p>
+        <p className="ml-2">{inputValues[selectedFields[1]] || ''}</p>
+      </div>
+      {/* Centered Paragraph */}
+      <p className="mb-2">{inputValues[selectedFields[2]] || ''}</p>
+      {/* Mẫu Phiếu Box */}
+      <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
+        <b className="text-lg" style={{ color: 'black', textAlign: 'center', marginLeft: '400px' }}>MẪU PHIẾU</b>
+        <div className="flex justify-between mt-4 border border-gray-300 p-2 rounded-lg w-full">
+          {selectedCriteriaFields.map((field, index) => (
+            <div key={index} className="flex-1 text-center">
+              <span className="font-semibold">{field}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col items-start mt-4 border border-gray-300 p-2 rounded-lg w-full">
+          {selectedChildren.map(child => {
+            const parent = chiTieuList.find(item => item.ChiTieuID === child.ChiTieuChaID);
+            const parentName = parent ? parent.TenChiTieu : '';
+            return (
+              <div key={child.ChiTieuID} className="mb-1">
+                {parentName ? (
+                  <span className="font-semibold">{parentName}</span>
+                ) : null}
+                <div className="ml-4">{child.TenChiTieu}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {/* Bottom Paragraphs */}
+      <div className="flex flex-col items-end mt-2 w-full">
+        <p className="mb-2">{inputValues[cardFields[0]] || ''}</p>
+        <p>{inputValues[cardFields[1]] || ''}</p>
+      </div>
+    </div>
+  </div>
 </Modal>
         {/* Delete Confirmation Modal */}
         <Modal
