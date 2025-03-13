@@ -227,7 +227,6 @@ const [recordToEdit, setRecordToEdit] = useState(null);
       setDeleteModalVisible(false);
     }
   };
-// Mau Phieu
   const Luu = async () => {
     try {
         const response = await axiosInstance.post('/RpMauPhieu/Insert', {
