@@ -5,9 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../../utils/axiosInstance';
 import '../../assets/css/Login.css';
 import anh from '../../assets/img/anh copy.jpg';
-
 const Login = () => {
-  
   const [modalVisible, setModalVisible] = useState(false);
   const [email, setEmail] = useState(''); // Đổi tên biến từ 'string' thành 'email' cho rõ ràng hơ
   const [loading, setLoading] = useState(false);

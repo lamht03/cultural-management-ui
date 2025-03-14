@@ -160,8 +160,10 @@ const [recordToEdit, setRecordToEdit] = useState(null);
     setTenMauPhieu(record.TenMauPhieu);
     setMaMauPhieu(record.MaMauPhieu);
     setLoaiMauPhieuID(record.LoaiMauPhieuID);
-    setSelectedCriteriaFields(record.TieuChiS.split(', ')); // Assuming TieuChiS is a comma-separated string
-    setSelectedFields(record.ChiTieuS.split(', ')); // Assuming ChiTieuS is a comma-separated string
+    // Check if TieuChiS and ChiTieuS are defined before splitting
+    setSelectedCriteriaFields(record.TieuChiS ? record.TieuChiS.split(', ') : []); 
+    setSelectedFields(record.ChiTieuS ? record.ChiTieuS.split(', ') : []); 
+    
     setIsEditModalVisible(true);
 };
   useEffect(() => {
@@ -675,7 +677,7 @@ const handleUpdate = async () => {
       Lưu
     </Button>,
   ]}
-  width={1000}
+  width={10000}
 >
   <div className="flex gap-4">
     {/* Left Column */}

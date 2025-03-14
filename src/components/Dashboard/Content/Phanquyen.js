@@ -16,6 +16,8 @@ const contentStyle = {
   padding: '20px',
 };
 const Nguoidung = () => {
+  const [nhomPhanQuyenID, setNhomPhanQuyenID] = useState(null);
+  const [usersData1, setUsersData1] = useState([]);
   const [showUserList, setShowUserList] = useState(true);
   const [addedUsers, setAddedUsers] = useState([]); // State to 
   const [usersData, setUsersData] = useState([]);
@@ -40,7 +42,7 @@ const Nguoidung = () => {
     try {
       const response = await axiosInstance.get('/v1/HeThongCanBo/DanhSachCanBo?pageNumber=1&pageSize=30');
       if (response.data) { // Check if data exists
-        setUsersData(response.data.data); // Set users data
+        setUsersData1(response.data.data); // Set users data
       } else {
         message.error('Failed to fetch users data.');
       }
@@ -94,26 +96,24 @@ const Nguoidung = () => {
   // Handle adding a user to a group
   const handleAddUser  = async () => {
     try {
-      const values = await userForm.validateFields(); // Validate form fields
-
-      // Construct the payload
+      const values = await userForm.validateFields();
+  
+      // Sử dụng nhomPhanQuyenID từ state
       const payload = {
-        NguoiDungID: values.NguoiDungID, // User ID from the form
-        NhomPhanQuyenID: values.NhomPhanQuyenID, // Group ID from the form
+        NguoiDungID: values.NguoiDungID,
+        NhomPhanQuyenID: nhomPhanQuyenID, // Sử dụng giá trị từ state
       };
-      // Send the POST request to the API
+  
       const response = await axiosInstance.post('/v1/HeThongPhanQuyen/ThemNguoiDungVaoNhomPhanQuyen', payload);
-      // Check the response status
       if (response.data.status === 1) {
         message.success('User  added to group successfully.');
         window.location.reload();
-        // Add the user to the addedUsers state
         const addedUser  = usersData.find(user => user.NguoiDungID === values.NguoiDungID);
         if (addedUser ) {
-          setAddedUsers(prev => [...prev, addedUser ]); // Add user to the list
+          setAddedUsers(prev => [...prev, addedUser ]);
         }
-        setIsAddUserModalVisible(false); // Close the modal
-        userForm.resetFields(); // Reset the form field
+        setIsAddUserModalVisible(false);
+        userForm.resetFields();
       } else {
         message.error('Failed to add user to group.');
       }
@@ -211,36 +211,34 @@ const Nguoidung = () => {
     item.hoTen.toLowerCase().includes(searchName.toLowerCase())
   );
   const handleSettingsClick = async (record) => {
-    setLoading(true); // Start loading
-    const nhomPhanQuyenID = record.key; // Get the ID from the record
-
+    setLoading(true);
+    const nhomPhanQuyenID = record.key; // Lấy ID từ record
+    setNhomPhanQuyenID(nhomPhanQuyenID); // Lưu trữ ID vào state
+  
     try {
-      // Call both APIs concurrently
       const [usersResponse, permissionsResponse] = await Promise.all([
         axiosInstance.get(`/v1/HeThongPhanQuyen/LayDanhSachNguoiDungTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`),
         axiosInstance.get(`/v1/HeThongPhanQuyen/LayDanhSachChucNangTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`)
       ]);
   
-      // Check users response
       if (usersResponse.data.status === 1) {
-        setUsersData(usersResponse.data.data); // Set users data
+        setUsersData(usersResponse.data.data);
       } else {
         message.error('Failed to fetch users data.');
       }
   
-      // Check permissions response
       if (permissionsResponse.data.status === 1) {
-        setPermissionsData(permissionsResponse.data.data); // Set permissions data
+        setPermissionsData(permissionsResponse.data.data);
       } else {
         message.error('Failed to fetch permissions data.');
       }
   
-      setShowSettings(true); // Show the settings section
+      setShowSettings(true);
     } catch (error) {
       message.error('Error while fetching data.');
       console.error(error);
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -414,39 +412,32 @@ const Nguoidung = () => {
           </>
         )}
      <Modal
-          title="Thêm người dùng"
-          visible={isAddUserModalVisible}
-          onCancel={handleAddUserCancel}
-          footer={null}
-        >
-          <Form form={userForm} layout="vertical">
-            <Form.Item
-              name="NguoiDungID"
-              label="ID Người Dùng"
-              rules={[{ required: true, message: 'Vui lòng chọn người dùng!' }]}
-            >
-              <Select placeholder="Chọn người dùng" loading={loading}>
-                {usersData.map(user => (
-                  <Option key={user.NguoiDungID} value={user.NguoiDungID}>
-                    {user.TenNguoiDung}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item
-              name="NhomPhanQuyenID"
-              label="ID Nhóm Phân Quyền"
-              rules={[{ required: true, message: 'Vui lòng nhập ID nhóm phân quyền!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" onClick={handleAddUser }>
-                Lưu
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
+  title="Thêm người dùng"
+  visible={isAddUserModalVisible}
+  onCancel={handleAddUserCancel}
+  footer={null}
+>
+  <Form form={userForm} layout="vertical">
+    <Form.Item
+      name="NguoiDungID"
+      label="ID Người Dùng"
+      rules={[{ required: true, message: 'Vui lòng chọn người dùng!' }]}
+    >
+      <Select placeholder="Chọn người dùng" loading={loading}>
+        {usersData1.map(user => (
+          <Option key={user.NguoiDungID} value={user.NguoiDungID}>
+            {user.TenNguoiDung}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+    <Form.Item>
+      <Button type="primary" onClick={handleAddUser }>
+        Lưu
+      </Button>
+    </Form.Item>
+  </Form>
+</Modal>
       </Content>
     </Layout>
   );
