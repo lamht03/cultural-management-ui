@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+      {
+        "source": "/:match*",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/static/*",
+        "destination": "/404"
+      }
+    ]
+  }

@@ -52,11 +52,11 @@ const Login = () => {
         // Redirect to dashboard
         navigate('/dashboard');
       } else {
-        message.error(response.data.message || 'Sai tài khoản hoặc mật khẩu!');
+        message.error(response.data.Message || 'Sai tài khoản hoặc mật khẩu!');
       }
     } catch (error) {
       console.error('Login Error:', error);
-      message.error('Sai tài khoản hoặc mật khẩu!');
+      message.error('Sai tài khoản hoặc mật khẩu! hoặc lỗi sever');
     } finally {
       setLoading(false);
     }
