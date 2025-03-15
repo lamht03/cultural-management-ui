@@ -231,15 +231,18 @@ const [recordToEdit, setRecordToEdit] = useState(null);
   };
   const Luu = async () => {
     try {
+        // Prepare ChiTieuS and TieuChiS in the required format
+        const chiTieuData = chiTieuList.filter(item => selectedFields.includes(item.TenChiTieu));
+        const tieuChiData = tieuChiList.filter(item => selectedCriteriaFields.includes(item.TenTieuChi));
         const response = await axiosInstance.post('/RpMauPhieu/Insert', {
             TenMauPhieu: tenMauPhieu,
             MaMauPhieu: maMauPhieu,
             LoaiMauPhieuID: loaiMauPhieuID,
-            TieuChiS: selectedCriteriaFields.join(', '),
-            ChiTieuS: selectedFields.join(', '),
-            ThangBaoCao : '',
-            NguoiTao : '',
-            KyBaoCaoID : 1
+            TieuChiS: JSON.stringify(tieuChiData).replace(/\\/g, '\\\\'), // Escape backslashes
+            ChiTieuS: JSON.stringify(chiTieuData).replace(/\\/g, '\\\\'), // Escape backslashes
+            ThangBaoCao: '',
+            NguoiTao: '',
+            KyBaoCaoID: 1
         });
 
         console.log('Success:', response.data);

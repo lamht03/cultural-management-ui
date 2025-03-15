@@ -411,16 +411,23 @@ const Nguoidung = () => {
             </div>
           </>
         )}
-     <Modal
+ <Modal
   title="Thêm người dùng"
   visible={isAddUserModalVisible}
   onCancel={handleAddUserCancel}
-  footer={null}
+  footer={[
+    <Button key="cancel" onClick={handleAddUserCancel}>
+      Hủy
+    </Button>,
+    <Button key="submit" type="primary" onClick={handleAddUser}>
+      Lưu
+    </Button>,
+  ]}
 >
   <Form form={userForm} layout="vertical">
     <Form.Item
       name="NguoiDungID"
-      label="ID Người Dùng"
+      label="Thêm người dùng"
       rules={[{ required: true, message: 'Vui lòng chọn người dùng!' }]}
     >
       <Select placeholder="Chọn người dùng" loading={loading}>
@@ -431,13 +438,9 @@ const Nguoidung = () => {
         ))}
       </Select>
     </Form.Item>
-    <Form.Item>
-      <Button type="primary" onClick={handleAddUser }>
-        Lưu
-      </Button>
-    </Form.Item>
   </Form>
 </Modal>
+
       </Content>
     </Layout>
   );
