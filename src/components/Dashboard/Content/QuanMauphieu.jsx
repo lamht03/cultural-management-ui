@@ -35,7 +35,7 @@ const [recordToEdit, setRecordToEdit] = useState(null);
   const [recordToDelete, setRecordToDelete] = useState(null);
   const [selectedIndicatorFields, setSelectedIndicatorFields] = useState([]);
   const [inputValues, setInputValues] = useState({});
-
+  
   // màn báo cáo
   const handleFieldSelect = (value) => {
     setSelectedFields(value);
@@ -174,6 +174,7 @@ const [recordToEdit, setRecordToEdit] = useState(null);
           axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20'),
           axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi?pageNumber=1&pageSize=20'),
           axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu?pageNumber=1&pageSize=20'),
+          
         ]);
 
         if (loaiMauPhieuResponse.data.status === 1) {
