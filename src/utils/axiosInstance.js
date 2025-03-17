@@ -37,13 +37,11 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      console.warn('⚠️ 401 Unauthorized detected! Attempting token refresh...');
       originalRequest._retry = true;
 
       if (!isRefreshing) {
         isRefreshing = true;
         const refreshToken = localStorage.getItem('refreshToken');
-        console.log('🔍 Current refresh token:', refreshToken);
         if (!refreshToken) {
           isRefreshing = false;
           localStorage.setItem('token', '');
