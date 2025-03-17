@@ -63,19 +63,15 @@ const Nguoidung = () => {
   const [dataSource, setDataSource] = useState([]); // Start with an empty array
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false); // State for delete modal
   const [selectedYear, setSelectedYear] = useState(null); // State for selected year
-  const fetchData = async (year = null, name = '') => {
+  const fetchData = async () => {
     try {
       const response = await axiosInstance.get(`/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Ensure the token is saved in localStorage
-        },
         params: {
           pageNumber: 1,
           pageSize: 20,
-          note: year, // Include the year as a query parameter
-          name: name, // Include the name as a query parameter
         },
       });
+  
       if (response.data && response.data.status === 1 && response.data.data) {
         const formattedData = response.data.data.map((item, index) => ({
           key: item.LoaiMauPhieuID,
@@ -85,7 +81,7 @@ const Nguoidung = () => {
           TrangThai: item.TrangThai,
           GhiChu: item.GhiChu,
         }));
-        setDataSource(formattedData);  // Update state
+        setDataSource(formattedData);  // Cập nhật state
       } else {
         message.error('Không thể lấy dữ liệu hợp lệ từ máy chủ');
       }
@@ -115,32 +111,24 @@ const Nguoidung = () => {
         GhiChu: values.GhiChu,
       };
       let response;
+  
       if (isEditMode) {
         // Gửi API cập nhật
         response = await axiosInstance.post(
           `/v1/DanhMucLoaiMauPhieu/CapNhapThongTinLoaiMauPhieu`,
-          { ...dataToSend, LoaiMauPhieuID: selectedRecord.key },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-          }
+          { ...dataToSend, LoaiMauPhieuID: selectedRecord.key }
         );
       } else {
         // Gửi API thêm mới
         response = await axiosInstance.post(
           `/v1/DanhMucLoaiMauPhieu/ThemMoiLoaiMauPhieu`,
-          dataToSend,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-          }
+          dataToSend
         );
       }
+  
       if (response.data.status === 1) {
         message.success(isEditMode ? 'Cập nhật thành công!' : 'Đã thêm thành công!');
-
+  
         // Gọi lại API để lấy danh sách mới nhất
         await fetchData(selectedYear, searchName); // Cập nhật bảng với dữ liệu mới
         setIsModalOpen(false); // Đóng modal
@@ -158,24 +146,16 @@ const Nguoidung = () => {
   };
   const handleDeleteOk = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      console.log('Token for delete:', token);
-      if (!token) {
-        message.error('Token không hợp lệ hoặc đã hết hạn.');
-        return;
-      }
       const response = await axiosInstance.post(
         `/v1/DanhMucLoaiMauPhieu/XoaThongTinLoaiMauPhieu`,
         null,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           params: {
             id: selectedRecord.key,
           },
         }
       );
+  
       if (response.data.status === 1) {
         message.success('Đã xóa thành công!');
         setDataSource(dataSource.filter(item => item.key !== selectedRecord.key));

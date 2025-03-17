@@ -8,13 +8,16 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+// Biến kiểm soát chỉ làm mới token một lần duy nhất
 let isRefreshing = false;
 let refreshSubscribers = [];
-const subscribeTokenRefresh = (callback) => {
-  refreshSubscribers.push(callback);
+// Hàm đợi đến khi token mới được cập nhật
+const subscribeTokenRefresh = (cb) => {
+  refreshSubscribers.push(cb);
 };
-const onRefreshed = (newAccessToken) => {
-  refreshSubscribers.forEach((callback) => callback(newAccessToken));
+// Khi token mới được nhận, cập nhật lại tất cả request đang chờ
+const onRefreshed = (newToken) => {
+  refreshSubscribers.forEach((cb) => cb(newToken));
   refreshSubscribers = [];
 };
 
@@ -85,7 +88,12 @@ axiosInstance.interceptors.response.use(
 
             localStorage.setItem('token', newAccessToken);
             localStorage.setItem('refreshToken', newRefreshToken);
-            onRefreshed(newAccessToken);
+            isRefreshing = false;
+            onRefreshed(newToken);
+
+            // Cập nhật request gốc với token mới
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return axiosInstance(originalRequest);
           } else {
             throw new Error('❌ Token refresh failed: Invalid response status');
           }
@@ -96,14 +104,13 @@ axiosInstance.interceptors.response.use(
           message.error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!');
           // window.location.href = '/';
           return Promise.reject(refreshError);
-        } finally {
-          isRefreshing = false;
         }
       }
 
+
       return new Promise((resolve) => {
-        subscribeTokenRefresh((newAccessToken) => {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        subscribeTokenRefresh((newToken) => {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
           resolve(axiosInstance(originalRequest));
         });
       });

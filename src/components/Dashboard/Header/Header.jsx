@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { data, Link, useNavigate } from 'react-router-dom';
-import {LockOutlined,UserOutlined,BellOutlined,QuestionCircleOutlined,} from '@ant-design/icons';
+import { Link, useNavigate } from 'react-router-dom';
+import { UserOutlined, BellOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { Drawer, Dropdown, Menu, message, Modal, Form, Input, Button } from 'antd';
 import logo from '../../../assets/img/logo.png';
 import axiosInstance from '../../../utils/axiosInstance';
 import { jwtDecode } from 'jwt-decode';
-
 const Header = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null); // State to hold user info
-
   const showDrawer = () => {
     setDrawerOpen(true);
   };
-
   const onClose = () => {
     setDrawerOpen(false);
   };
-
   const handleMenuClick = (e) => {
     if (e.key === 'logout') {
       message.info('Đăng xuất thành công!');
@@ -31,13 +27,11 @@ const Header = () => {
       setModalOpen(true); // Show change password modal
     }
   };
-
   const fetchUserInfo = async (userId) => {
     try {
       const response = await axiosInstance.get(
         `/v1/HeThongNguoiDung/TimKiemNguoiDungTheoID?userId=${userId}` // Use the dynamic userId
       );
-
       if (response.data.Status === 1) {
         console.log('Thông tin người dùng:', response.data.Data);
         setUserInfo(response.data.Data); // Set user info to state
@@ -48,24 +42,17 @@ const Header = () => {
       console.error('Lỗi khi lấy thông tin người dùng:', error);
     }
   };
-
   const handleUpdatePassword = async (values) => {
     try {
-      // Retrieve the access token from localStorage
       const accessToken = localStorage.getItem('token');
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
-        // Optionally, redirect to the login page
         return;
       }
-  
-      // Client-side check: Ensure new password and confirm password match
       if (values.MatKhauMoi !== values.XacNhanMatKhauMoi) {
         message.error("Mật khẩu mới và xác nhận mật khẩu không khớp!");
         return;
       }
-  
-      // Make the API call with the token in the header
       const response = await axiosInstance.post(
         '/v1/HeThongNguoiDung/DoiMatKhau',
         {
@@ -79,8 +66,6 @@ const Header = () => {
           },
         }
       );
-  
-      // Check the API response
       if (response.data.status === 1) {
         message.success('Mật Khẩu thay đổi thành công!');
         return;
@@ -99,7 +84,6 @@ const Header = () => {
     setModalOpen(false); // Close modal
     form.resetFields(); // Clear form data
   };
-
   const notificationMenu = (
     <Menu
       items={[
@@ -117,7 +101,6 @@ const Header = () => {
       ]}
     />
   );
-
   const userMenu = (
     <Menu
       onClick={handleMenuClick}
@@ -133,7 +116,6 @@ const Header = () => {
       ]}
     />
   );
-
   useEffect(() => {
     const access_token = localStorage.getItem('accessToken');
     if (access_token) {
@@ -180,6 +162,7 @@ const Header = () => {
     alignItems: 'center',
     justifyContent: 'center',
   };
+
   return (
     <div style={headerStyle}>
       {/* Logo and name */}
