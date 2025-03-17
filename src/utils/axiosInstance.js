@@ -31,35 +31,9 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error('🚨 API Error:', error); // Log lỗi tổng quát
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -71,12 +45,11 @@ axiosInstance.interceptors.response.use(
         const refreshToken = localStorage.getItem('refreshToken');
         console.log('🔍 Current refresh token:', refreshToken);
         if (!refreshToken) {
-          console.error('❌ No refresh token found, logging out...');
           isRefreshing = false;
           localStorage.setItem('token', '');
           localStorage.setItem('refreshToken', '');
           message.error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!');
-          // window.location.href = '/';
+          window.location.href = '/';
           return Promise.reject(new Error('No refresh token available'));
         }
 
@@ -89,20 +62,19 @@ axiosInstance.interceptors.response.use(
             localStorage.setItem('token', newAccessToken);
             localStorage.setItem('refreshToken', newRefreshToken);
             isRefreshing = false;
-            onRefreshed(newToken);
+            onRefreshed(newAccessToken);
 
             // Cập nhật request gốc với token mới
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return axiosInstance(originalRequest);
           } else {
             throw new Error('❌ Token refresh failed: Invalid response status');
           }
         } catch (refreshError) {
-          console.error('🚨 Error refreshing token:', refreshError);
           localStorage.setItem('token', '');
           localStorage.setItem('refreshToken', '');
           message.error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!');
-          // window.location.href = '/';
+          window.location.href = '/';
           return Promise.reject(refreshError);
         }
       }
@@ -120,25 +92,6 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
