@@ -9,10 +9,10 @@ const { Content } = Layout;
 const { Search } = Input;
 const Nguoidung = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-const [recordToEdit, setRecordToEdit] = useState(null);
+  const [recordToEdit, setRecordToEdit] = useState(null);
   const [tenMauPhieu, setTenMauPhieu] = useState('');
   const [maMauPhieu, setMaMauPhieu] = useState('');
-    const [loaiMauPhieuID, setLoaiMauPhieuID] = useState(null);
+  const [loaiMauPhieuID, setLoaiMauPhieuID] = useState(null);
   const [selectedChildren, setSelectedChildren] = useState([]);
   const [chiTieuList, setChiTieuList] = useState([]);
   const [tieuChiList, setTieuChiList] = useState([]);
@@ -112,7 +112,18 @@ const [recordToEdit, setRecordToEdit] = useState(null);
     setCardFields(selectedbaocao);
     setIsModalbaocao(false);
   };
-
+  const renderCriteriaOptions = (criteriaList) => {
+    return criteriaList.map(item => (
+      <Option key={item.TieuChiID} value={item.TenTieuChi} disabled={selectedCriteriaFields.includes(item.TenTieuChi)}>
+        {item.TenTieuChi}
+        {item.children && item.children.length > 0 && (
+          <div style={{ paddingLeft: '20px' }}>
+            {renderCriteriaOptions(item.children)} {/* Recursively render children */}
+          </div>
+        )}
+      </Option>
+    ));
+  };
   const handleSelectbaocao = (value) => {
     setSelectedbaocao(value);
     const newInputValues = {};
@@ -211,10 +222,18 @@ const [recordToEdit, setRecordToEdit] = useState(null);
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
-
+    
     fetchData();
   }, []);
-
+  const renderChildren = (children) => {
+    return children.map(child => (
+      <div key={child.TieuChiID} className="ml-4 mb-2 border border-gray-300 p-2 rounded-md">
+        <label className="block font-semibold mb-1">{child.TenTieuChi}</label>
+        {/* If the child has its own children, render them recursively */}
+        {child.children && child.children.length > 0 && renderChildren(child.children)}
+      </div>
+    ));
+  };
   const handleDelete = async () => {
     try {
       const response = await axiosInstance.post(`/RpMauPhieu/Delete?id=${recordToDelete}`);
@@ -264,9 +283,7 @@ const [recordToEdit, setRecordToEdit] = useState(null);
         setIsModalVisible(false);
     }
 };
-const handleUpdate = async () => {
-  
-};
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '20px', backgroundColor: '#fff', border: '1px solid #ccc' }}>
@@ -391,17 +408,23 @@ const handleUpdate = async () => {
 
               {/* Card for "Phần tiêu chí" */}
               <Card
-                title="Phần tiêu chí"
-                extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>}
-                className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <p className="text-sm text-gray-500">Các trường thông tin</p>
-                {selectedCriteriaFields.map(field => (
-                  <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                    <label className="block font-semibold mb-1">{field}</label>
-                  </div>
-                ))}
-              </Card>
+  title="Phần tiêu chí"
+  extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>}
+  className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+>
+  <p className="text-sm text-gray-500">Các trường thông tin</p>
+  {selectedCriteriaFields.map(field => {
+    // Find the full criterion object based on the selected field
+    const criterion = tieuChiList.find(item => item.TenTieuChi === field);
+    return (
+      <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+        <label className="block font-semibold mb-1">{field}</label>
+        {/* Render children if they exist */}
+        {criterion && criterion.children && criterion.children.length > 0 && renderChildren(criterion.children)}
+      </div>
+    );
+  })}
+</Card>
 
               {/* Card for "Phần chỉ tiêu" */}
               <Card
@@ -468,13 +491,25 @@ const handleUpdate = async () => {
               {/* Mẫu Phiếu Box */}
               <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
                 <b className="text-lg" style={{ color: 'black', textAlign: 'center', marginLeft: '400px' }}>MẪU PHIẾU</b>
-                <div className="flex justify-between mt-4 border border-gray-300 p-2 rounded-lg w-full">
-                  {selectedCriteriaFields.map((field, index) => (
-                    <div key={index} className="flex-1 text-center">
-                      <span className="font-semibold">{field}</span>
-                    </div>
-                  ))}
-                </div>
+                <div className="flex flex-col mt-4 border border-gray-300 p-2 rounded-lg w-full">
+    {/* Hiển thị tiêu chí */}
+    <div className="flex border-b border-gray-300 pb-2 mb-2">
+    {selectedCriteriaFields.map((field, index) => {
+        const criterion = tieuChiList.find(item => item.TenTieuChi === field);
+        return (
+          <div key={index} className="flex-1 text-center border-r border-gray-300 p-2 last:border-r-0">
+            <span className="font-semibold">{field}</span>
+            {/* Render children nếu có */}
+            
+            {criterion && criterion.children && criterion.children.length > 0 && (
+              <div className="ml-4">{renderChildren(criterion.children)}</div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+</div>
+
                 <div className="flex flex-col items-start mt-4 border border-gray-300 p-2 rounded-lg w-full">
   {selectedChildren.map(child => {
     const parent = chiTieuList.find(item => item.ChiTieuID === child.ChiTieuChaID);
@@ -548,47 +583,43 @@ const handleUpdate = async () => {
 
         {/* Add Criteria Field Modal */}
         <Modal
-          title="Thêm tiêu chí"
-          visible={isAddCriteriaFieldModalVisible}
-          onCancel={() => setIsAddCriteriaFieldModalVisible(false)}
-          footer={[
-            <Button key="cancel" onClick={() => setIsAddCriteriaFieldModalVisible(false)}>
-              Hủy
-            </Button>,
-            <Button
-              key="save"
-              type="primary"
-              onClick={() => {
-                console.log("Selected Criteria Fields:", selectedCriteriaFields);
-                setIsAddCriteriaFieldModalVisible(false);
-              }}
-            >
-              Lưu
-            </Button>,
-          ]}
-        >
-          <div>
-            <div className="flex flex-col mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Tiêu chí <span className="text-red-500">*</span>
-              </label>
-              <Select
-                mode="multiple"
-                allowClear
-                placeholder="Chọn tiêu chí"
-                className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                value={selectedCriteriaFields}
-                onChange={handleCriteriaFieldSelect}
-              >
-                {tieuChiList.map(item => (
-                  <Option key={item.TieuChiID} value={item.TenTieuChi} disabled={selectedCriteriaFields.includes(item.TenTieuChi)}>
-                    {item.TenTieuChi}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-          </div>
-        </Modal>
+  title="Thêm tiêu chí"
+  visible={isAddCriteriaFieldModalVisible}
+  onCancel={() => setIsAddCriteriaFieldModalVisible(false)}
+  footer={[
+    <Button key="cancel" onClick={() => setIsAddCriteriaFieldModalVisible(false)}>
+      Hủy
+    </Button>,
+    <Button
+      key="save"
+      type="primary"
+      onClick={() => {
+        console.log("Selected Criteria Fields:", selectedCriteriaFields);
+        setIsAddCriteriaFieldModalVisible(false);
+      }}
+    >
+      Lưu
+    </Button>,
+  ]}
+>
+  <div>
+    <div className="flex flex-col mb-4">
+      <label className="block text-sm font-medium text-gray-700">
+        Tiêu chí <span className="text-red-500">*</span>
+      </label>
+      <Select
+        mode="multiple"
+        allowClear
+        placeholder="Chọn tiêu chí"
+        className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+        value={selectedCriteriaFields}
+        onChange={handleCriteriaFieldSelect}
+      >
+        {renderCriteriaOptions(tieuChiList.filter(item => item.LoaiTieuChi === 2))} {/* Filter for LoaiTieuChi equal to 2 */}
+      </Select>
+    </div>
+  </div>
+</Modal>
 
         {/* Add Indicator Field Modal */}
         <Modal
@@ -650,195 +681,7 @@ const handleUpdate = async () => {
             </Option>
           </Select>
         </Modal>
-        <Modal
-    title="Sửa mẫu phiếu"
-    visible={isEditModalVisible}
-    onCancel={() => setIsEditModalVisible(false)}
-    footer={[
-        <Button key="cancel" onClick={() => setIsEditModalVisible(false)}>
-            Hủy
-        </Button>,
-        <Button key="save" type="primary" onClick={handleUpdate}>
-            Lưu
-        </Button>,
-    ]}
-    width={10000}
->
-    <div className="flex gap-4">
-        {/* Left Column */}
-        <div className="flex-1">
-            {/* Loại mẫu phiếu */}
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                    Loại mẫu phiếu <span className="text-red-500">*</span>
-                </label>
-                <Select
-                    placeholder="Chọn loại mẫu phiếu"
-                    className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                    value={loaiMauPhieuID} // Bind state to select
-                    onChange={value => setLoaiMauPhieuID(value)} // Update state on change
-                >
-                    {loaiMauPhieuList.map(item => (
-                        <Select.Option key={item.LoaiMauPhieuID} value={item.LoaiMauPhieuID}>
-                            {item.TenLoaiMauPhieu}
-                        </Select.Option>
-                    ))}
-                </Select>
-            </div>
-
-            {/* Tên biểu mẫu */}
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                    Tên biểu mẫu <span className="text-red-500">*</span>
-                </label>
-                <Input
-                    placeholder="Nhập tên biểu mẫu"
-                    className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                    value={tenMauPhieu} // Bind state to input
-                    onChange={e => setTenMauPhieu(e.target.value)} // Update state on change
-                />
-            </div>
-
-            {/* Mã mẫu phiếu */}
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                    Mã mẫu phiếu <span className="text-red-500">*</span>
-                </label>
-                <Input
-                    placeholder="Nhập mã mẫu phiếu"
-                    className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-                    value={maMauPhieu} // Bind state to input
-                    onChange={e => setMaMauPhieu(e.target.value)} // Update state on change
-                />
-            </div>
-
-            {/* Các Card khác */}
-            {/* Card cho "Phần đầu báo cáo" */}
-            <Card
-                title="Phần đầu báo cáo"
-                extra={<Button type="primary" onClick={handleAddField}>Thêm trường</Button>}
-                className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-            >
-                <p className="text-sm text-gray-500">Các trường thông tin</p>
-                {selectedFields.map(field => (
-                    <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                        <label className="block font-semibold mb-1">{field}</label>
-                        <Input
-                            placeholder={`Nhập ${field}`}
-                            value={inputValues[field] || ''}
-                            onChange={(e) => handleInputChange(field, e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2"
-                        />
-                    </div>
-                ))}
-            </Card>
-
-            {/* Card cho "Phần tiêu chí" */}
-            <Card
-                title="Phần tiêu chí"
-                extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>}
-                className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-            >
-                <p className="text-sm text-gray-500">Các trường thông tin</p>
-                {selectedCriteriaFields.map(field => (
-                    <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                        <label className="block font-semibold mb-1">{field}</label>
-                    </div>
-                ))}
-            </Card>
-
-            {/* Card cho "Phần chỉ tiêu" */}
-            <Card
-                title="Phần chỉ tiêu"
-                extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>}
-                className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-            >
-                <p className="text-sm text-gray-500">Các trường thông tin</p>
-                {selectedIndicatorFields.map(field => {
-                    const parentIndicator = chiTieuList.find(item => item.TenChiTieu === field);
-                    return (
-                        <div key={field} className="mb-4 border border-gray-300 rounded-md overflow-hidden">
-                            <div className="bg-gray-100 px-3 py-2 font-semibold">
-                                {field}
-                            </div>
-                            {selectedChildren
-                                .filter(child => child.ChiTieuChaID === parentIndicator?.ChiTieuID)
-                                .map(child => (
-                                    <div
-                                        key={child.ChiTieuID}
-                                        className="border border-red-500 p-2 m-2 rounded-md flex justify-between items-center"
-                                    >
-                                        <span>{child.TenChiTieu}</span>
-                                    </div>
-                                ))}
-                        </div>
-                    );
-                })}
-            </Card>
-
-            {/* Card cho "Phần báo cuối" */}
-            <Card
-                title="Phần báo cuối"
-                extra={<Button type="primary" onClick={() => setIsModalbaocao(true)}>Thêm trường</Button>}
-                className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-            >
-                <p className="text-sm text-gray-500">Các trường thông tin</p>
-                {cardFields.map(field => (
-                    <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                        <label className="block font-semibold mb-1">{field}</label>
-                        <Input
-                            placeholder={`Nhập ${field}`}
-                            value={inputValues[field] || ''}
-                            onChange={(e) => handleInputChange(field, e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2"
-                        />
-                    </div>
-                ))}
-            </Card>
-        </div>
-
-        {/* Right Column */}
-        <div className="flex-1 flex flex-col items-center">
-            {/* Top Paragraphs */}
-            <div className="flex justify-between w-full mb-2">
-                <p className="mr-2">{inputValues[selectedFields[0]] || ''}</p>
-                <p className="ml-2">{inputValues[selectedFields[1]] || ''}</p>
-            </div>
-            {/* Centered Paragraph */}
-            <p className="mb-2">{inputValues[selectedFields[2]] || ''}</p>
-            {/* Mẫu Phiếu Box */}
-            <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
-                <b className="text-lg" style={{ color: 'black', textAlign: 'center', marginLeft: '400px' }}>MẪU PHIẾU</b>
-                <div className="flex justify-between mt-4 border border-gray-300 p-2 rounded-lg w-full">
-                    {selectedCriteriaFields.map((field, index) => (
-                        <div key={index} className="flex-1 text-center">
-                            <span className="font-semibold">{field}</span>
-                        </div>
-                    ))}
-                </div>
-                <div className="flex flex-col items-start mt-4 border border-gray-300 p-2 rounded-lg w-full">
-                    {selectedChildren.map(child => {
-                        const parent = chiTieuList.find(item => item.ChiTieuID === child.ChiTieuChaID);
-                        const parentName = parent ? parent.TenChiTieu : '';
-                        return (
-                            <div key={child.ChiTieuID} className="mb-1">
-                                {parentName ? (
-                                    <span className="font-semibold">{parentName}</span>
-                                ) : null}
-                                <div className="ml-4">{child.TenChiTieu}</div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-            {/* Bottom Paragraphs */}
-            <div className="flex flex-col items-end mt-2 w-full">
-                <p className="mb-2">{inputValues[cardFields[0]] || ''}</p>
-                <p>{inputValues[cardFields[1]] || ''}</p>
-            </div>
-        </div>
-    </div>
-</Modal>
+        
         {/* Delete Confirmation Modal */}
         <Modal
           title="Xác nhận xóa"

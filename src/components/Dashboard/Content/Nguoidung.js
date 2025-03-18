@@ -47,8 +47,8 @@ const columns = (handleEdit, handleDelete, handleResetPassword) => [
   },
   {
     title: 'Cơ quan',
-    dataIndex: 'CoQuanID',
-    key: 'CoQuanID',
+    dataIndex: 'TenCoQuan',
+    key: 'TenCoQuan',
     align: 'left', // Placeholder for organization name
   },
   {
@@ -115,7 +115,7 @@ const Nguoidung = () => {
           NgaySinh: item.NgaySinh,
           GioiTinh: item.GioiTinh,
           DiaChi: item.DiaChi,
-          CoQuanID: item.CoQuanID,
+          TenCoQuan: item.TenCoQuan,
           Email: item.Email,
           DienThoai: item.DienThoai,
           TrangThai: item.TrangThai,
