@@ -16,6 +16,17 @@ const contentStyle = {
   padding: '20px',
 };
 const Nguoidung = () => {
+    // Dùng để quản lý form "Thêm chức năng"
+  const [functionForm] = Form.useForm();
+
+  // Danh sách chức năng mà API trả về (khi ấn nút Thêm)
+  const [functionList, setFunctionList] = useState([]);
+  // Lưu trữ các quyền checkbox
+// Ban đầu đặt giá trị false (false = không có quyền, true = có quyền)
+const [rightXem, setRightXem] = useState(false);
+const [rightThem, setRightThem] = useState(false);
+const [rightSua, setRightSua] = useState(false);
+const [rightXoa, setRightXoa] = useState(false);
   const [nhomPhanQuyenID, setNhomPhanQuyenID] = useState(null);
   const [usersData1, setUsersData1] = useState([]);
   const [showUserList, setShowUserList] = useState(true);
@@ -93,6 +104,31 @@ const Nguoidung = () => {
     }
     setIsModalVisible(true);
   };
+
+  const showAddFunctionModal = async () => {
+    try {
+      // Gọi API lấy danh sách tất cả chức năng
+      const res = await axiosInstance.get('/v1/HeThongPhanQuyen/DanhSachChucNang');
+      if (res.data.Status === 1) {
+        setFunctionList(res.data.Data); // Lưu danh sách chức năng
+      } else {
+        message.error('Không lấy được danh sách chức năng');
+      }
+    } catch (error) {
+      console.error(error);
+      message.error('Lỗi khi lấy danh sách chức năng');
+    }
+    
+    // Reset quyền
+    setRightXem(0);
+    setRightThem(0);
+    setRightSua(0);
+    setRightXoa(0);
+    
+    // Hiển thị modal
+    setIsAddFunctionModalVisible(true);
+  };
+  
   // Handle adding a user to a group
   const handleAddUser  = async () => {
     try {
@@ -126,10 +162,6 @@ const Nguoidung = () => {
   const showAddUserModal = () => {
     fetchUsers(); // Fetch users when opening the modal
     setIsAddUserModalVisible(true);
-  };
-  // Open modal for adding function to group
-  const showAddFunctionModal = () => {
-    setIsAddFunctionModalVisible(true);
   };
   // Close modal
   const handleCancel = () => {
@@ -272,7 +304,76 @@ const Nguoidung = () => {
       ),
     },
   ];
-  return (
+  const handleAddFunction = async () => {
+    try {
+      const values = await functionForm.validateFields();
+      if (!nhomPhanQuyenID) {
+        message.error('Chưa chọn nhóm phân quyền!');
+        return;
+      }
+  
+      // Payload: gửi quyền dưới dạng boolean
+      const payload = {
+        NhomPhanQuyenID: nhomPhanQuyenID,
+        ChucNangID: values.ChucNangID,
+        Xem: rightXem,
+        Them: rightThem,
+        Sua: rightSua,
+        Xoa: rightXoa,
+      };
+  
+      const response = await axiosInstance.post('/v1/HeThongPhanQuyen/ThemChucNangVaoNhomPhanQuyen', payload);
+      if (response.data.status === 1) {
+        message.success('Thêm chức năng thành công!');
+        // Reload hoặc fetch lại permissions sau khi thêm
+        const updatedPermissions = await axiosInstance.get(`/v1/HeThongPhanQuyen/LayDanhSachChucNangTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`);
+        if (updatedPermissions.data.status === 1) {
+          setPermissionsData(updatedPermissions.data.data);
+        }
+      } else {
+        message.error('Không thể thêm chức năng vào nhóm');
+      }
+    } catch (error) {
+      console.error('Error adding function:', error);
+      message.error('Lỗi khi thêm chức năng vào nhóm');
+    } finally {
+      setIsAddFunctionModalVisible(false);
+      functionForm.resetFields();
+    }
+  };
+
+  // Xóa chức năng khỏi nhóm
+const handleDeletePermission = async (chucNangID, nhomPhanQuyenID) => {
+  setLoading(true);
+  try {
+    // Payload gửi lên API
+    const payload = {
+      ChucNangID: chucNangID,
+      NhomPhanQuyenID: nhomPhanQuyenID
+    };
+    
+    // Gọi API xóa
+    const response = await axiosInstance.post('/v1/HeThongPhanQuyen/XoaChucNangKhoiNhomPhanQuyen', payload);
+    if (response.data.status === 1) {
+      message.success('Chức năng đã được xóa khỏi nhóm!');
+      
+      // Làm mới danh sách permissions
+      const updatedPermissions = await axiosInstance.get(`/v1/HeThongPhanQuyen/LayDanhSachChucNangTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`);
+      if (updatedPermissions.data.status === 1) {
+        setPermissionsData(updatedPermissions.data.data);
+      }
+  } else {
+      message.error('Xóa chức năng không thành công!');
+    }
+  } catch (error) {
+    message.error('Error while removing the permission.');
+    console.error('Delete permission error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+      return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
         {!showSettings ? (
@@ -391,20 +492,32 @@ const Nguoidung = () => {
                   </div>
                   <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <ul style={{ flex: 1 }}>
-                      {permissionsData.map(permission => (
-                        <li key={permission.ChucNangID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: '-40px' }}>
-                          <span>{permission.TenChucNang}</span>
-                          <div style={{ display: 'flex', gap: '10px' }}>
-                            <Checkbox checked={permission.Xem}>Xem</Checkbox>
-                            <Checkbox checked={permission.Them}>Thêm</Checkbox>
-                            <Checkbox checked={permission.Sua}>Sửa</Checkbox>
-                            <Checkbox checked={permission.Xoa}>Xóa</Checkbox>
-                            <CloseOutlined />
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                  <ul style={{ flex: 1 }}>
+                    {permissionsData.map(permission => (
+                      <li
+                        key={permission.ChucNangID}
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: '-40px' }}
+                      >
+                        <span>{permission.TenChucNang}</span>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <Checkbox checked={permission.Xem}>Xem</Checkbox>
+                          <Checkbox checked={permission.Them}>Thêm</Checkbox>
+                          <Checkbox checked={permission.Sua}>Sửa</Checkbox>
+                          <Checkbox checked={permission.Xoa}>Xóa</Checkbox>
+
+                          {/* Nút X để xóa */}
+                          <Popconfirm
+                            title={`Bạn có chắc muốn xóa chức năng ${permission.TenChucNang} không?`}
+                            onConfirm={() => handleDeletePermission(permission.ChucNangID, permission.NhomPhanQuyenID)}
+                            okText="Có"
+                            cancelText="Không"
+                          >
+                            <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
+                          </Popconfirm>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                   </div>
                 </div>
               </div>
@@ -438,6 +551,64 @@ const Nguoidung = () => {
         ))}
       </Select>
     </Form.Item>
+  </Form>
+</Modal>
+<Modal
+  title="Thêm chức năng cho nhóm"
+  visible={isAddFunctionModalVisible}
+  onCancel={() => setIsAddFunctionModalVisible(false)}
+  footer={[
+    <Button key="cancel" onClick={() => setIsAddFunctionModalVisible(false)}>
+      Hủy
+    </Button>,
+    <Button key="submit" type="primary" onClick={handleAddFunction}>
+      Lưu
+    </Button>,
+  ]}
+>
+  <Form form={functionForm} layout="vertical">
+    <Form.Item
+      name="ChucNangID"
+      label="Chọn chức năng"
+      rules={[{ required: true, message: 'Vui lòng chọn chức năng!' }]}
+    >
+      <Select placeholder="Chọn chức năng" style={{ width: '100%' }}>
+        {functionList.map((func) => (
+          <Option key={func.ChucNangID} value={func.ChucNangID}>
+            {func.TenChucNang}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+    <div style={{ marginTop: '10px' }}>
+      <label>Chọn quyền:</label>
+      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+        <Checkbox
+          checked={rightXem}
+          onChange={() => setRightXem(!rightXem)}
+        >
+          Xem
+        </Checkbox>
+        <Checkbox
+          checked={rightThem}
+          onChange={() => setRightThem(!rightThem)}
+        >
+          Thêm
+        </Checkbox>
+        <Checkbox
+          checked={rightSua}
+          onChange={() => setRightSua(!rightSua)}
+        >
+          Sửa
+        </Checkbox>
+        <Checkbox
+          checked={rightXoa}
+          onChange={() => setRightXoa(!rightXoa)}
+        >
+          Xóa
+        </Checkbox>
+      </div>
+    </div>
   </Form>
 </Modal>
 
