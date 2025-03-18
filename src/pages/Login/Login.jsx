@@ -64,7 +64,6 @@ const Login = () => {
   const handleForgotPassword = () => {
     setModalVisible(true);
   };
-
   return (
     <div className="login-container">
       <header className="login-header">
