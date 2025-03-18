@@ -106,31 +106,40 @@ const Nguoidung = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get(`/v1/HeThongCanBo/DanhSachCanBo?pageNumber=1&pageSize=30`);
-      if (response.data.data && response.data.data.length > 0) {
-        const formattedData = response.data.data.map((item) => ({
-          key: item.CanBoID,
-          TenCanBo: item.TenCanBo,
-          TenNguoiDung: item.TenNguoiDung,
-          NgaySinh: item.NgaySinh,
-          GioiTinh: item.GioiTinh,
-          DiaChi: item.DiaChi,
-          TenCoQuan: item.TenCoQuan,
-          Email: item.Email,
-          DienThoai: item.DienThoai,
-          TrangThai: item.TrangThai,
-        }));
-        setData(formattedData);
-      } else {
-        setData([]);
-      }
+        // Gọi API với các tham số tìm kiếm
+        const response = await axiosInstance.get(`/v1/HeThongCanBo/DanhSachCanBo`, {
+            params: {
+                TenCanBoOrTenNguoiDung: searchName, // Tên cán bộ hoặc tên người dùng
+                CoQuanID: selectedCoQuanID, // ID của cơ quan đã chọn
+                pageNumber: 1, // Số trang
+                pageSize: 30 // Kích thước trang
+            }
+        });
+
+        if (response.data.data && response.data.data.length > 0) {
+            const formattedData = response.data.data.map((item) => ({
+                key: item.CanBoID,
+                TenCanBo: item.TenCanBo,
+                TenNguoiDung: item.TenNguoiDung,
+                NgaySinh: item.NgaySinh,
+                GioiTinh: item.GioiTinh,
+                DiaChi: item.DiaChi,
+                TenCoQuan: item.TenCoQuan,
+                Email: item.Email,
+                DienThoai: item.DienThoai,
+                TrangThai: item.TrangThai,
+            }));
+            setData(formattedData);
+        } else {
+            setData([]);
+        }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      message.error('Đã xảy ra lỗi khi lấy dữ liệu.');
+        console.error('Error fetching data:', error);
+        message.error('Đã xảy ra lỗi khi lấy dữ liệu.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
   const flattenCoQuanData = (data) => {
     let result = [];
     const recurse = (items) => {
@@ -273,13 +282,13 @@ const Nguoidung = () => {
           ))}
         </Select>
         <Search
-          placeholder="Nhập tên cán bộ hoặc cơ quan"
-          allowClear
-          value={searchName}
-          onSearch={setSearchName}
-          onChange={(e) => setSearchName(e.target.value)}
-          style={{ width: 200 }}
-        />
+    placeholder="Nhập tên cán bộ hoặc cơ quan"
+    allowClear
+    value={searchName}
+    onSearch={setSearchName}
+    onChange={(e) => setSearchName(e.target.value)}
+    style={{ width: 200 }}
+/>
       </div>
       {loading ? (
         <Spin size="large" style={{ display: 'block', margin: 'auto' }} />
