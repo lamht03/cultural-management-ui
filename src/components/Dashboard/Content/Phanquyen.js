@@ -453,75 +453,75 @@ const handleDeletePermission = async (chucNangID, nhomPhanQuyenID) => {
                 />
               </div>
               <div style={{ display: 'flex', gap: '10px', backgroundColor: '#fff', color: '#000', marginTop: '20px', width: '100%', height: '300px', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f0f0f0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm người dùng</h3>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddUserModal}>
-                      Thêm
-                    </Button>
-                  </div>
-                  {/* Render user data here */}
-                  {showUserList && (
-          <div style={{ marginTop: '10px' }}>
-            {usersData.length > 0 ? (
-              usersData.map(user => (
-                <span key={user.NguoiDungID} style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
-                  <span style={{ marginRight: '5px' }}>{user.TenNguoiDung}</span>
-                  <Popconfirm
-                    title={`Bạn có chắc muốn xóa ${user.TenNguoiDung} không?`}
-                    onConfirm={() => handleDeleteUser (user.NguoiDungID, user.NhomPhanQuyenID)}
-                    okText="Có"
-                    cancelText="Không"
-                  >
-                    <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
-                  </Popconfirm>
-                </span>
-              ))
-            ) : (
-              <span>Không có người dùng nào.</span>
-            )}
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f0f0f0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm người dùng</h3>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddUserModal}>
+                Thêm
+            </Button>
+        </div>
+        {/* Render user data here */}
+        {showUserList && (
+            <div style={{ marginTop: '10px' }}>
+                {usersData.length > 0 ? (
+                    usersData.map(user => (
+                        <span key={user.NguoiDungID} style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+                            <span style={{ marginRight: '5px' }}>{user.TenNguoiDung}</span>
+                            <Popconfirm
+                                title={`Bạn có chắc muốn xóa ${user.TenNguoiDung} không?`}
+                                onConfirm={() => handleDeleteUser(user.NguoiDungID, user.NhomPhanQuyenID)}
+                                okText="Có"
+                                cancelText="Không"
+                            >
+                                <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
+                            </Popconfirm>
+                        </span>
+                    ))
+                ) : (
+                    <span>Không có người dùng nào.</span>
+                )}
+            </div>
         )}
-                </div>
-                {/* Hàng thứ hai */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#e0e0e0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm chức năng cho nhóm</h3>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
-                      Thêm
-                    </Button>
-                  </div>
-                  <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <ul style={{ flex: 1 }}>
-                    {permissionsData.map(permission => (
-                      <li
+    </div>
+    {/* Hàng thứ hai */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#e0e0e0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm chức năng cho nhóm</h3>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
+                Thêm
+            </Button>
+        </div>
+        <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <ul style={{ flex: 1, marginLeft: '40px' }}>
+                {permissionsData.map(permission => (
+                    <li
                         key={permission.ChucNangID}
                         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: '-40px' }}
-                      >
+                    >
                         <span>{permission.TenChucNang}</span>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <Checkbox checked={permission.Xem}>Xem</Checkbox>
-                          <Checkbox checked={permission.Them}>Thêm</Checkbox>
-                          <Checkbox checked={permission.Sua}>Sửa</Checkbox>
-                          <Checkbox checked={permission.Xoa}>Xóa</Checkbox>
+                            <Checkbox checked={permission.Xem}>Xem</Checkbox>
+                            <Checkbox checked={permission.Them}>Thêm</Checkbox>
+                            <Checkbox checked={permission.Sua}>Sửa</Checkbox>
+                            <Checkbox checked={permission.Xoa}>Xóa</Checkbox>
 
-                          {/* Nút X để xóa */}
-                          <Popconfirm
-                            title={`Bạn có chắc muốn xóa chức năng ${permission.TenChucNang} không?`}
-                            onConfirm={() => handleDeletePermission(permission.ChucNangID, permission.NhomPhanQuyenID)}
-                            okText="Có"
-                            cancelText="Không"
-                          >
-                            <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
-                          </Popconfirm>
+                            {/* Nút X để xóa */}
+                            <Popconfirm
+                                title={`Bạn có chắc muốn xóa chức năng ${permission.TenChucNang} không?`}
+                                onConfirm={() => handleDeletePermission(permission.ChucNangID, permission.NhomPhanQuyenID)}
+                                okText="Có"
+                                cancelText="Không"
+                            >
+                                <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
+                            </Popconfirm>
                         </div>
-                      </li>
-                    ))}
-                  </ul>
-                  </div>
-                </div>
-              </div>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </div>
+</div>
             </div>
           </>
         )}

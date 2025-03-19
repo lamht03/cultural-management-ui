@@ -88,6 +88,27 @@ const Nguoidung = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingRecord, setEditingRecord] = useState(null); 
+  const [userGroups, setUserGroups] = useState([]); 
+  const fetchUserGroups = async () => {
+    try {
+      const response = await axiosInstance.get('/v1/HeThongPhanQuyen/DanhSachNhomPhanQuyen', {
+        params: {
+          pageNumber: 1,
+          pageSize: 20,
+        },
+      });
+      if (response.data && response.data.Status === 1 && Array.isArray(response.data.Data)) {
+        setUserGroups(response.data.Data); // Set user groups from the response
+      } else {
+        message.error('Không có dữ liệu nhóm người dùng.');
+      }
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+      message.error('Đã xảy ra lỗi khi lấy danh sách nhóm người dùng.');
+    } finally {
+      setLoading(false); // Set loading to false after fetching
+    }
+  };
   const handleResetPassword = async (userId) => {
     try {
       const response = await axiosInstance.post(`/v1/HeThongNguoiDung/DatLaiMatKhau?userId=${userId}`);
@@ -100,6 +121,7 @@ const Nguoidung = () => {
     }
   };
   useEffect(() => {
+    fetchUserGroups();
     fetchData(); // Fetch data when component mounts
     fetchCoQuan(); // Fetch organization data
   }, [searchName, selectedCoQuanID]); // Refetch data when searchName or selectedCoQuanID changes
@@ -212,7 +234,7 @@ const Nguoidung = () => {
           TrangThai: values.TrangThai,
           CoQuanID: values.CoQuanID,
           TenNguoiDung: values.TenNguoiDung,
-          DanhSachNhomPhanQuyenID: [2]
+          DanhSachNhomPhanQuyenID: values.nhom || [] // Get selected user groups
         };
         if (editingRecord) {
           updateData(requestData); // Update existing record
@@ -369,19 +391,22 @@ const Nguoidung = () => {
             </Select>
           </Form.Item>
           <Form.Item
-            name="nhom"
-            label="Nhóm người dùng"
-            rules={[{ required: true, message: 'Vui lòng chọn ít nhất một nhóm người dùng!' }]}
-          >
-            <Select
-              mode="multiple" // Enable multiple selection
-              placeholder="Chọn nhóm người dùng"
-            >
-              <Select.Option value={1}>Cán bộ quản lý bảo tàng</Select.Option>
-              <Select.Option value={3}>Văn hóa 02</Select.Option>
-              <Select.Option value={2}>Văn hóa 1</Select.Option>
-            </Select>
-          </Form.Item>
+  name="nhom"
+  label="Nhóm người dùng"
+  rules={[{ required: true, message: 'Vui lòng chọn ít nhất một nhóm người dùng!' }]}
+>
+  <Select
+    mode="multiple"
+    placeholder="Chọn nhóm người dùng"
+    loading={loading} // Show loading state while fetching
+  >
+    {userGroups.map(group => (
+      <Select.Option key={group.NhomPhanQuyenID} value={group.NhomPhanQuyenID}>
+        {group.TenNhomPhanQuyen}
+      </Select.Option>
+    ))}
+  </Select>
+</Form.Item>
           <Form.Item
             name="CoQuanID"
             label="Cơ quan"
