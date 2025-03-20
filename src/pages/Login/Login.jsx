@@ -3,13 +3,15 @@ import { Form, Input, Button, message, Modal } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/css/Login.css';
 import anh from '../../assets/img/anh copy.jpg';
-import axiosInstance from '../../utils/axiosInstance'; // Assuming you still want to keep the API call for password recovery
+import axiosInstance from '../../utils/axiosInstance';
+
 const Login = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [form] = Form.useForm(); // Create a form instance
+  const [form] = Form.useForm();
+
   const handleModalOk = async () => {
     try {
       setLoading(true);
@@ -33,37 +35,44 @@ const Login = () => {
       setLoading(false);
     }
   };
+
   const login = async () => {
-    setLoading(true);
-    const values = form.getFieldsValue(); // Get form values
+    const values = form.getFieldsValue();
     const { TenNguoiDung, MatKhau } = values;
+
+    // Check if username or password is empty
+    if (!TenNguoiDung || !MatKhau) {
+      message.error('Vui lòng nhập tài khoản và mật khẩu!');
+      return;
+    }
+
+    setLoading(true);
     try {
-      // Make API call to login
       const response = await axiosInstance.post('/v1/HeThongNguoiDung/DangNhap', {
         TenNguoiDung,
         MatKhau,
       });
       if (response.data.status === 1) {
         const { token, refreshToken } = response.data;
-        // Save tokens to localStorage
         localStorage.setItem('token', token);
         localStorage.setItem('refreshToken', refreshToken);
         message.success('Đăng nhập thành công!');
-        // Redirect to dashboard
         navigate('/dashboard');
       } else {
-        message.error(response.data.Message || 'Sai tài khoản hoặc mật khẩu!');
+        message.error(response.data.message || 'Sai tài khoản hoặc mật khẩu!');
       }
     } catch (error) {
       console.error('Login Error:', error);
-      message.error('Sai tài khoản hoặc mật khẩu! hoặc lỗi sever');
+      message.error('Sai tài khoản hoặc mật khẩu!');
     } finally {
       setLoading(false);
     }
   };
+
   const handleForgotPassword = () => {
     setModalVisible(true);
   };
+
   return (
     <div className="login-container">
       <header className="login-header">
@@ -78,7 +87,7 @@ const Login = () => {
         <div className="login-form">
           <Form
             name="login"
-            form={form} // Attach the form instance
+            form={form}
             style={{ width: '300px', margin: 'auto', padding: '50px' }}
           >
             <h2 className="text-2xl font-bold mb-6 text-center">ĐĂNG NHẬP</h2>
@@ -103,8 +112,9 @@ const Login = () => {
             <Form.Item>
               <Button 
                 type="primary" 
-                onClick={login} // Call the login function on click
-                style={{ width: '100%' }} // Removed loading={loading}
+                onClick={login} 
+                loading={loading} // Add loading state here
+                style={{ width: '100%' }}
               >
                 Đăng nhập
               </Button>
@@ -131,7 +141,7 @@ const Login = () => {
         <Form>
           <Form.Item
             label="Email"
-            name="email" // Changed from "string" to "email" for clarity
+            name="email"
             rules={[{ required: true, message: 'Xin vui lòng nhập email!' }]}
           >
             <Input 
@@ -146,6 +156,5 @@ const Login = () => {
     </div>
   );
 };
-
 
 export default Login;

@@ -51,18 +51,13 @@ const Nguoidung = () => {
   const handleInputChange = (field, value) => {
     setInputValues(prev => ({ ...prev, [field]: value }));
   };
-
   // màn tiêu chí
   const handleCriteriaFieldSelect = (selectedValues) => {
     // Lọc các tiêu chí đã chọn từ danh sách `tieuChiList`
-    const sortedFields = selectedValues
-      .map(value => tieuChiList.find(item => item.TenTieuChi === value))
-      .filter(Boolean) // Loại bỏ phần tử `undefined` nếu có
-      .sort((a, b) => a.TieuChiID - b.TieuChiID) // Sắp xếp theo TieuChiID
-  
+    const selectedFields = selectedValues.map(value => tieuChiList.find(item => item.TenTieuChi === value)).filter(Boolean);
     // Chỉ lấy danh sách tên tiêu chí sau khi sắp xếp
-    setSelectedCriteriaFields(sortedFields.map(item => item.TenTieuChi));
-  };
+    setSelectedCriteriaFields(selectedFields.map(item => item.TenTieuChi));
+};
   const getAllChildren = (parent) => {
     let children = [];
     if (parent.children && parent.children.length > 0) {
@@ -77,15 +72,12 @@ const Nguoidung = () => {
   const handleIndicatorFieldSelect = (value) => {
     setSelectedIndicatorFields(value);
     const newIndicatorFieldValues = { ...criteriaFieldValues };
-
     value.forEach(field => {
         if (!newIndicatorFieldValues[field]) {
             newIndicatorFieldValues[field] = '';
         }
     });
-
     setCriteriaFieldValues(newIndicatorFieldValues);
-
     // Lấy danh sách tất cả chỉ tiêu con từ danh sách cha được chọn
     let allChildren = [];
     value.forEach(field => {
@@ -94,79 +86,72 @@ const Nguoidung = () => {
             allChildren = [...allChildren, ...getAllChildren(parent)];
         }
     });
-
     setSelectedChildren(allChildren);
 };
-
   const handleSaveIndicatorFields = () => {
     console.log("Selected Indicator Fields:", selectedIndicatorFields);
     setIsAddIndicatorFieldModalVisible(false);
   };
-
   const handleAddField = () => {
     setIsAddFieldModalVisible(true);
   };
   const handleUpdate = async () => {
     try {
-      // Prepare ChiTieuS and TieuChiS in the required format
-      const chiTieuData = chiTieuList.filter(item => selectedIndicatorFields.includes(item.TenChiTieu));
-      const tieuChiData = selectedFields.map(field => {
-          return {
-              TenTieuChi: field,
-              GiaTri: inputValues[field] || ''
-          };
-      });
-      // Prepare ChiTietMauPhieus
-      const chiTietMauPhieus = chiTieuData.map(item => ({
-          ChiTietMauPhieuID: 0, // Assuming you want to create a new ChiTietMauPhieu, set this to 0
-          MauPhieuID: recordToEdit.MauPhieuID, // Use the ID of the record being edited
-          ChitieuID: item.ChiTieuID, // Assuming you have ChiTieuID in your chiTieuData
-          TieuChiIDs: item.TieuChiIDs || [], // Assuming TieuChiIDs is an array
-          GopCot: true, // Set according to your logic
-          GoptuCot: true, // Set according to your logic
-          GopDenCot: 0, // Set according to your logic
-          SoCotGop: 0, // Set according to your logic
-          NoiDung: '' // Set according to your logic
-      }));
-      // Construct the request body
-      const requestBody = {
-          MauPhieuID: recordToEdit.MauPhieuID, // Use the ID of the record being edited
-          TenMauPhieu: tenMauPhieu,
-          MaMauPhieu: maMauPhieu,
-          KyBaoCaoID: 1, // Assuming this is a constant value
-          ThangBaoCao: '', // Set this according to your logic
-          LoaiMauPhieuID: loaiMauPhieuID,
-          ChiTieuS: JSON.stringify(chiTieuData).replace(/\\/g, '\\\\'), // Escape backslashes
-          TieuChiS: JSON.stringify(tieuChiData).replace(/\\/g, '\\\\'), // Escape backslashes
-          ChiTietMauPhieus: chiTietMauPhieus, // Include the detailed data
-          NguoiTao: '', // Set this according to your logic
-      };
-      // Send the update request
-      const response = await axiosInstance.post('/RpMauPhieu/Update', requestBody);
-      console.log('Update Success:', response.data);
-      // Optionally, you can reset the form fields here
-      setTenMauPhieu('');
-      setMaMauPhieu('');
-      setLoaiMauPhieuID(0);
-      setSelectedFields([]);
-      setInputValues({});
-      setSelectedIndicatorFields([]);
-  } catch (error) {
-      console.error('Error:', error);
-  } finally {
-      setIsModalVisible(false);
-  }
+        // Prepare ChiTieuS and TieuChiS in the required format
+        const chiTieuData = chiTieuList.filter(item => selectedIndicatorFields.includes(item.TenChiTieu));
+        const tieuChiData = selectedFields.map(field => {
+            return {
+                TenTieuChi: field,
+                GiaTri: inputValues[field] || ''
+            };
+        });
+        // Prepare ChiTietMauPhieus
+        const chiTietMauPhieus = chiTieuData.map(item => ({
+            ChiTietMauPhieuID: 0, // Assuming you want to create a new ChiTietMauPhieu, set this to 0
+            MauPhieuID: recordToEdit.MauPhieuID, // Use the ID of the record being edited
+            ChitieuID: item.ChiTieuID, // Assuming you have ChiTieuID in your chiTieuData
+            TieuChiIDs: item.TieuChiIDs || [], // Assuming TieuChiIDs is an array
+            GopCot: true, // Set according to your logic
+            GoptuCot: 0, // Set according to your logic
+            GopDenCot: 0, // Set according to your logic
+            SoCotGop: 0, // Set according to your logic
+            NoiDung: '' // Set according to your logic
+        }));
+        // Construct the request body
+        const requestBody = {
+            MauPhieuID: recordToEdit.MauPhieuID, // Use the ID of the record being edited
+            TenMauPhieu: tenMauPhieu,
+            MaMauPhieu: maMauPhieu,
+            KyBaoCaoID: 1, // Assuming this is a constant value
+            ThangBaoCao: thangBaoCao, // Set this according to your logic
+            LoaiMauPhieuID: loaiMauPhieuID,
+            chiTieuS: JSON.stringify(chiTieuData).replace(/\\/g, '\\\\'), // Escape backslashes
+            tieuChiS: JSON.stringify(tieuChiData).replace(/\\/g, '\\\\'), // Escape backslashes
+            chiTietMauPhieus: chiTietMauPhieus, // Include the detailed data
+            NguoiTao: nguoiTao, // Set this according to your logic
+        };
+        // Send the update request
+        const response = await axiosInstance.post('/RpMauPhieu/Update', requestBody);
+        console.log('Update Success:', response.data);
+        // Optionally, you can reset the form fields here
+        resetForm();
+    } catch (error) {
+        console.error('Error:', error);
+    } finally {
+        setIsModalVisible(false);
+    }
 };
-
 const resetForm = () => {
-    setTenMauPhieu('');
-    setMaMauPhieu('');
-    setLoaiMauPhieuID(0);
-    setSelectedFields([]);
-    setSelectedCriteriaFields([]);
-    setInputValues({});
-    setSelectedIndicatorFields([]);
-    setSelectedChildren([]);
+  setTenMauPhieu('');
+  setMaMauPhieu('');
+  setLoaiMauPhieuID(0);
+  setSelectedFields([]);
+  setSelectedCriteriaFields([]);
+  setInputValues({});
+  setSelectedIndicatorFields([]);
+  setSelectedChildren([]);
+  setThangBaoCao(''); // Reset ThangBaoCao
+  setNguoiTao(''); // Reset NguoiTao
 };
   // màn báo cáo cuối
   const handleAddReport = () => {
@@ -234,26 +219,7 @@ const resetForm = () => {
     setTenMauPhieu(record.TenMauPhieu);
     setMaMauPhieu(record.MaMauPhieu);
     setLoaiMauPhieuID(record.LoaiMauPhieuID);
-
     // Fetch the detailed data for the selected record if needed
-    try {
-        const response = await axiosInstance.get(`/RpMauPhieu/GetById?id=${record.key}`);
-        if (response.data.status === 1) {
-            const data = response.data.data;
-            setSelectedFields(data.TieuChiS.map(item => item.TenTieuChi));
-            setInputValues(data.TieuChiS.reduce((acc, item) => {
-                acc[item.TenTieuChi] = item.GiaTri;
-                return acc;
-            }, {}));
-            setSelectedIndicatorFields(data.ChiTieuS.map(item => item.TenChiTieu));
-            setSelectedChildren(data.ChiTietMauPhieus);
-        } else {
-            message.error('Không thể lấy dữ liệu chi tiết mẫu phiếu');
-        }
-    } catch (error) {
-        message.error('Lỗi khi lấy dữ liệu chi tiết mẫu phiếu: ' + error.message);
-    }
-
     // Open the modal for editing
     setIsModalVisible(true);
 };
@@ -265,15 +231,12 @@ const resetForm = () => {
           axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20'),
           axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi?pageNumber=1&pageSize=20'),
           axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu?pageNumber=1&pageSize=20'),
-          
         ]);
-
         if (loaiMauPhieuResponse.data.status === 1) {
           setLoaiMauPhieuList(loaiMauPhieuResponse.data.data);
         } else {
           message.error('Không thể lấy dữ liệu Loại Mẫu Phiếu');
         }
-
         if (dataResponse.data.Status === 1) {
           const formattedData = dataResponse.data.Data.map((item, index) => ({
             key: item.MauPhieuID,
@@ -286,13 +249,11 @@ const resetForm = () => {
         } else {
           message.error(dataResponse.data.Message || 'Không thể lấy dữ liệu');
         }
-
         if (tieuChiResponse.data.status === 1) {
           setTieuChiList(tieuChiResponse.data.data);
         } else {
           message.error('Không thể lấy dữ liệu Tiêu Chí');
         }
-
         if (chiTieuResponse.data.status === 1) {
           setChiTieuList(chiTieuResponse.data.data);
         } else {
@@ -302,10 +263,8 @@ const resetForm = () => {
         message.error('Lỗi khi lấy dữ liệu: ' + err.message);
       }
     };
-    
     fetchData();
   }, []);
-  
   const renderChildren = (children) => {
     return children.map(child => (
       <div key={child.TieuChiID} className="ml-4 mb-2 border border-gray-300 p-2 rounded-md">
@@ -333,14 +292,13 @@ const resetForm = () => {
   const Luu = async () => {
     try {
         // Prepare ChiTieuS and TieuChiS in the required format
-        const chiTieuData = chiTieuList.filter(item => selectedIndicatorFields.includes(item.TenChiTieu)); // Get data for ChiTieuS from selectedIndicatorFields
+        const chiTieuData = chiTieuList.filter(item => selectedIndicatorFields.includes(item.TenChiTieu));
         const tieuChiData = selectedFields.map(field => {
             return {
                 TenTieuChi: field,
-                GiaTri: inputValues[field] || '' // Get value from inputValues
+                GiaTri: inputValues[field] || ''
             };
         });
-
         // Prepare ChiTietMauPhieus
         const chiTietMauPhieus = chiTieuData.map(item => ({
             MauPhieuID: 0, // Assuming you want to create a new MauPhieu, set this to 0
@@ -352,31 +310,23 @@ const resetForm = () => {
             SoCotGop: 0, // Set according to your logic
             NoiDung: '' // Set according to your logic
         }));
-
         // Construct the request body
         const requestBody = {
             TenMauPhieu: tenMauPhieu,
             MaMauPhieu: maMauPhieu,
             LoaiMauPhieuID: loaiMauPhieuID,
             KyBaoCaoID: 1, // Assuming this is a constant value
-            ThangBaoCao: '', // Set this according to your logic
+            ThangBaoCao: thangBaoCao, // Set this according to your logic
             ChiTieuS: JSON.stringify(chiTieuData).replace(/\\/g, '\\\\'), // Escape backslashes
             TieuChiS: JSON.stringify(tieuChiData).replace(/\\/g, '\\\\'), // Escape backslashes
             ChiTietMauPhieus: chiTietMauPhieus, // Include the detailed data
-            NguoiTao: '', // Set this according to your logic
+            NguoiTao: nguoiTao, // Set this according to your logic
         };
-
-        // Send the request
+        // Send the insert request
         const response = await axiosInstance.post('/RpMauPhieu/Insert', requestBody);
-        console.log('Success:', response.data);
-
+        console.log('Insert Success:', response.data);
         // Optionally, you can reset the form fields here
-        setTenMauPhieu('');
-        setMaMauPhieu('');
-        setLoaiMauPhieuID(0);
-        setSelectedFields([]);
-        setInputValues({});
-        setSelectedIndicatorFields([]);
+        resetForm();
     } catch (error) {
         console.error('Error:', error);
     } finally {
@@ -459,7 +409,6 @@ const resetForm = () => {
                 ))}
             </Select>
         </div>
-
         {/* Tên biểu mẫu */}
         <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
@@ -472,7 +421,6 @@ const resetForm = () => {
                 onChange={e => setTenMauPhieu(e.target.value)} // Cập nhật state khi người dùng nhập
             />
         </div>
-
         {/* Mã mẫu phiếu */}
         <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
@@ -485,7 +433,6 @@ const resetForm = () => {
                 onChange={e => setMaMauPhieu(e.target.value)} // Cập nhật state khi người dùng nhập
             />
         </div>
-
         {/* Card for "Phần đầu báo cáo" */}
         <Card
             title="Phần đầu báo cáo"
@@ -506,7 +453,6 @@ const resetForm = () => {
                 </div>
             ))}
         </Card>
-
         {/* Card for "Phần tiêu chí" */}
         <Card
             title="Phần tiêu chí"
@@ -524,36 +470,34 @@ const resetForm = () => {
                 );
             })}
         </Card>
-
         {/* Card for "Phần chỉ tiêu" */}
         <Card
-            title="Phần chỉ tiêu"
-            extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>}
-            className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-        >
-            <p className="text-sm text-gray-500">Các trường thông tin</p>
-            {selectedIndicatorFields.map(field => {
-                const parentIndicator = chiTieuList.find(item => item.TenChiTieu === field);
-                return (
-                    <div key={field} className="mb-4 border border-gray-300 rounded-md overflow-hidden">
-                        <div className="bg-gray-100 px-3 py-2 font-semibold">
-                            {field}
+    title="Phần chỉ tiêu"
+    extra={<Button type="primary" onClick={() => setIsAddIndicatorFieldModalVisible(true)}>Thêm trường</Button>}
+    className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+>
+    <p className="text-sm text-gray-500">Các trường thông tin</p>
+    {selectedIndicatorFields.map(field => {
+        const parentIndicator = chiTieuList.find(item => item.TenChiTieu === field);
+        return (
+            <div key={field} className="mb-4 border border-gray-300 rounded-md overflow-hidden">
+                <div className="bg-gray-100 px-3 py-2 font-semibold">
+                    {field}
+                </div>
+                {selectedChildren
+                    .filter(child => child.ChiTieuChaID === parentIndicator?.ChiTieuID)
+                    .map(child => (
+                        <div
+                            key={child.ChiTieuID}
+                            className="border border-gray-300 p-2 m-2 rounded-md flex justify-between items-center"
+                        >
+                            <span>{child.TenChiTieu}</span>
                         </div>
-                        {selectedChildren
-                            .filter(child => child.ChiTieuChaID === parentIndicator?.ChiTieuID)
-                            .map(child => (
-                                <div
-                                    key={child.ChiTieuID}
-                                    className="border border-red-500 p-2 m-2 rounded-md flex justify-between items-center"
-                                >
-                                    <span>{child.TenChiTieu}</span>
-                                </div>
-                            ))}
-                    </div>
-                );
-            })}
-        </Card>
-
+                    ))}
+            </div>
+        );
+    })}
+</Card>
         {/* Card for "Phần báo cuối" */}
         <Card
             title="Phần báo cuối"
@@ -582,14 +526,33 @@ const resetForm = () => {
             <p className="mr-2 whitespace-pre-line">
                 {inputValues[selectedFields[0]] || ''}
             </p>
-            <b className="ml-2 whitespace-pre-line">
-                {inputValues[selectedFields[1]] || ''}
-            </b>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginLeft: '10px' }}>
+  <b
+    className="ml-2 whitespace-pre-line"
+    style={{
+      marginLeft: '10px',
+      textAlign: inputValues[selectedFields[1]] ? 'center' : 'left', // Center if value exists
+      width: '100%', // Ensure it takes full width for centering
+    }}
+  >
+    {inputValues[selectedFields[1]] || ''}
+  </b>
+</div>
         </div>
         {/* Centered Paragraph */}
-        <p className="mb-2 whitespace-pre-line">
-            {inputValues[selectedFields[2]] || ''}
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginLeft: '10px' }}>
+        <p
+  className="mb-2 whitespace-pre-line"
+  style={{
+    textAlign: inputValues[selectedFields[2]] ? 'center' : 'left', // Căn giữa nếu có giá trị
+    width: '100%', // Đảm bảo chiếm toàn bộ chiều rộng để căn giữa
+    margin: 0, // Loại bỏ margin mặc định nếu cần
+    fontFamily: '"Times New Roman", Times, serif', // Định dạng font Times New Roman
+  }}
+>
+  {inputValues[selectedFields[2]] || ''}
+</p>
+</div>
         {/* Mẫu Phiếu Box */}
         <div className="border border-gray-300 rounded-lg p-4 w-full min-h-[300px] bg-gray-50">
             <h1 className="text-2xl font-bold mb-4 text-center" style={{ color: '#000' }}>MẪU PHIẾU</h1>
@@ -599,44 +562,64 @@ const resetForm = () => {
                     {/* Display Criteria Fields */}
                     <div className="overflow-auto max-h-60"> {/* Thay đổi max-h-60 theo nhu cầu */}
                         <table className="w-full border-collapse border border-gray-300">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    {selectedCriteriaFields.map(field => {
-                                        const parentCriterion = tieuChiList.find(item => item.TenTieuChi === field);
-                                        if (parentCriterion && parentCriterion.children) {
-                                            return (
-                                                <th key={parentCriterion.TieuChiID} className="border border-gray-300 px-4 py-2 text-center" colSpan={parentCriterion.children.length}>
-                                                    {parentCriterion.TenTieuChi}
-                                                </th>
-                                            );
-                                        } else {
-                                            return (
-                                                <th key={field} className="border border-gray-300 px-4 py-2 text-center">
-                                                    {field}
-                                                </th>
-                                            );
-                                        }
-                                    })}
-                                    {/* Thêm các cột cố định */}
-                                </tr>
-                            </thead>
-                            <tbody>
-    {/* Hiển thị các tiêu chí con bên trong bảng */}
+                        <thead>
+    <tr className="bg-gray-100">
+        {selectedCriteriaFields.map(field => {
+            const parentCriterion = tieuChiList.find(item => item.TenTieuChi === field);
+            if (parentCriterion && parentCriterion.children && parentCriterion.children.length > 0) {
+                return (
+                    <th key={parentCriterion.TieuChiID} className="border border-gray-300 px-4 py-2 text-center" colSpan={parentCriterion.children.length}>
+                        {parentCriterion.TenTieuChi}
+                    </th>
+                );
+            } else {
+                return (
+                    <th key={field} className="border border-gray-300 px-4 py-2 text-center">
+                        {field}
+                    </th>
+                );
+            }
+        })}
+        {/* Add fixed columns if needed */}
+    </tr>
+    <tr className="bg-gray-100">
+        {selectedCriteriaFields.map(field => {
+            const parentCriterion = tieuChiList.find(item => item.TenTieuChi === field);
+            if (parentCriterion && parentCriterion.children && parentCriterion.children.length > 0) {
+                return parentCriterion.children.map(child => (
+                    <th key={child.TieuChiID} className="border border-gray-300 px-4 py-2 text-center">
+                        {child.TenTieuChi}
+                    </th>
+                ));
+            } else {
+                return (
+                    <th key={field} className="border border-gray-300 px-4 py-2 text-center">
+                        {/* Empty cell for non-parent criteria */}
+                    </th>
+                );
+            }
+        })}
+        {/* Add fixed columns if needed */}
+    </tr>
+</thead>
+<tbody>
     {selectedChildren.map((child, index) => {
-        // Tìm tiêu chí cha của tiêu chí con
+        // Find the parent criterion of the child
         const parent = chiTieuList.find(item => item.ChiTieuID === child.ChiTieuChaID);
 
-        // Chỉ hiển thị tiêu chí con mà không hiển thị tên cha
         return (
             <tr key={child.ChiTieuID} className="border-b border-gray-300">
                 <td className="border border-gray-300 px-4 py-2">
-                    {/* Không hiển thị tên cha */}
+                    {/* Empty cell for parent criteria */}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                     {child.TenChiTieu}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                     {/* Empty cell for Ghi chú */}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                    {/* Empty cell for Tháng/năm */}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                     {/* Empty cell for Tháng/năm */}
@@ -651,7 +634,18 @@ const resetForm = () => {
             </div>
             {/* Bottom Paragraphs */}
             <div className="flex flex-col items-end mt-2 w-full">
-                <p className="mb-2 whitespace-pre-line">{inputValues[cardFields[0]] || ''}</p>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginLeft: '10px' }}>
+  <p
+    className="mb-2 whitespace-pre-line"
+    style={{
+      textAlign: inputValues[cardFields[0]] ? 'center' : 'left', // Center if value exists
+      width: '100%', // Ensure it takes full width for centering
+      margin: 0, // Remove default margin if needed
+    }}
+  >
+    {inputValues[cardFields[0]] || ''}
+  </p>
+</div>
                 <p className="whitespace-pre-line">{inputValues[cardFields[1]] || ''}</p>
             </div>
         </div>
@@ -705,7 +699,6 @@ const resetForm = () => {
             </div>
           </div>
         </Modal>
-
         {/* Add Criteria Field Modal */}
         <Modal
   title="Thêm tiêu chí"
@@ -733,24 +726,18 @@ const resetForm = () => {
         Tiêu chí <span className="text-red-500">*</span>
       </label>
       <Select
-  mode="multiple"
-  allowClear
-  placeholder="Chọn tiêu chí"
-  className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
-  value={selectedCriteriaFields}
-  onChange={handleCriteriaFieldSelect}
->
-  {renderCriteriaOptions(
-    tieuChiList
-      .filter(item => item.LoaiTieuChi === 2)
-      .sort((a, b) => a.TieuChiID - b.TieuChiID) // Sắp xếp trước khi hiển thị
-  )}
-        {renderCriteriaOptions(tieuChiList.filter(item => item.LoaiTieuChi === 2))} {/* Filter for LoaiTieuChi equal to 2 */}
+        mode="multiple"
+        allowClear
+        placeholder="Chọn tiêu chí"
+        className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm"
+        value={selectedCriteriaFields}
+        onChange={handleCriteriaFieldSelect}
+      >
+        {renderCriteriaOptions(tieuChiList.filter(item => item.LoaiTieuChi === 2))}
       </Select>
     </div>
   </div>
 </Modal>
-
         {/* Add Indicator Field Modal */}
         <Modal
           title="Thêm chỉ tiêu"
@@ -783,7 +770,6 @@ const resetForm = () => {
             </div>
           </div>
         </Modal>
-
         {/* Add Report Modal */}
         <Modal
           title="Thêm báo cáo cuối"
@@ -811,7 +797,6 @@ const resetForm = () => {
             </Option>
           </Select>
         </Modal>
-        
         {/* Delete Confirmation Modal */}
         <Modal
           title="Xác nhận xóa"
@@ -825,5 +810,4 @@ const resetForm = () => {
     </Layout>
   );
 };
-
 export default Nguoidung;
