@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Layout, Table, Input, message, Popconfirm, Modal, Form, Checkbox, Select } from 'antd';
+import { SaveOutlined } from "@ant-design/icons";
 import { EditOutlined, DeleteOutlined, SettingOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../utils/axiosInstance';
 import '../../../assets/css/Nguoidung.css';
@@ -374,6 +375,30 @@ const handleDeletePermission = async (chucNangID, nhomPhanQuyenID) => {
   }
 };
 
+const handleCheckboxChange = (chucNangID, permissionType) => {
+  setPermissionsData(prevPermissions =>
+    prevPermissions.map(permission =>
+      permission.ChucNangID === chucNangID
+        ? { ...permission, [permissionType]: !permission[permissionType] }
+        : permission
+    )
+  );
+};
+
+const handleSavePermissions = async () => {
+  try {
+    const response = await axiosInstance.post('/v1/HeThongPhanQuyen/CapNhatQuyenNhomChucNang', permissionsData);
+    if (response.data.status === 1) {
+      message.success('Permissions updated successfully!');
+    } else {
+      message.error('Failed to update permissions.');
+    }
+  } catch (error) {
+    message.error('Error while updating permissions.');
+    console.error(error);
+  }
+};
+
       return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={contentStyle}>
@@ -487,34 +512,51 @@ const handleDeletePermission = async (chucNangID, nhomPhanQuyenID) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#e0e0e0', color: '#000', width: '100%', height: '100%', borderRadius: 1, border: '1px solid #ccc', padding: '20px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 className="text-2xl font-bold mb-6 text-center" style={{ fontSize: '20px' }}>Thêm chức năng cho nhóm</h3>
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
-                Thêm
-            </Button>
+            <div>
+                <Button type="primary" icon={<PlusOutlined />} onClick={showAddFunctionModal}>
+                    Thêm
+                </Button>
+                <Button 
+                    type="primary" 
+                    onClick={handleSavePermissions} 
+                    style={{ marginLeft: '10px' }}
+                    icon={<SaveOutlined />}
+                >
+                    Lưu
+                </Button>
+            </div>
         </div>
         <b style={{ marginTop: '10px', alignSelf: 'flex-start' }}>Hệ Thống</b>
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
             <ul style={{ flex: 1, marginLeft: '40px' }}>
                 {permissionsData.map(permission => (
-                    <li
-                        key={permission.ChucNangID}
-                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginLeft: '-40px' }}
-                    >
+                    <li key={permission.ChucNangID} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>{permission.TenChucNang}</span>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                            <Checkbox checked={permission.Xem}>Xem</Checkbox>
-                            <Checkbox checked={permission.Them}>Thêm</Checkbox>
-                            <Checkbox checked={permission.Sua}>Sửa</Checkbox>
-                            <Checkbox checked={permission.Xoa}>Xóa</Checkbox>
-
-                            {/* Nút X để xóa */}
-                            <Popconfirm
-                                title={`Bạn có chắc muốn xóa chức năng ${permission.TenChucNang} không?`}
-                                onConfirm={() => handleDeletePermission(permission.ChucNangID, permission.NhomPhanQuyenID)}
-                                okText="Có"
-                                cancelText="Không"
+                            <Checkbox
+                                checked={permission.Xem}
+                                onChange={() => handleCheckboxChange(permission.ChucNangID, 'Xem')}
                             >
-                                <CloseOutlined style={{ cursor: 'pointer', color: 'red' }} />
-                            </Popconfirm>
+                                Xem
+                            </Checkbox>
+                            <Checkbox
+                                checked={permission.Them}
+                                onChange={() => handleCheckboxChange(permission.ChucNangID, 'Them')}
+                            >
+                                Thêm
+                            </Checkbox>
+                            <Checkbox
+                                checked={permission.Sua}
+                                onChange={() => handleCheckboxChange(permission.ChucNangID, 'Sua')}
+                            >
+                                Sửa
+                            </Checkbox>
+                            <Checkbox
+                                checked={permission.Xoa}
+                                onChange={() => handleCheckboxChange(permission.ChucNangID, 'Xoa')}
+                            >
+                                Xóa
+                            </Checkbox>
                         </div>
                     </li>
                 ))}
