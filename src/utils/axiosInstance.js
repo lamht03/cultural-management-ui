@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { message } from 'antd';
-// const API_URL = 'http://192.168.100.4:2003/api/';
-const API_URL = 'https://localhost:7024/api/';
+const API_URL = 'http://192.168.100.4:2003/api/';
+// const API_URL = 'https://localhost:7024/api/';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {

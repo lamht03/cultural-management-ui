@@ -217,16 +217,17 @@ const [rightXoa, setRightXoa] = useState(false);
       setLoading(false);
     }
   };
-  const handleDeleteUser  = async (nguoiDungID, nhomPhanQuyenID) => {
+  const handleDeleteUser = async (nguoiDungID, nhomPhanQuyenID) => {
     setLoading(true);
     try {
       const payload = {
         NguoiDungID: nguoiDungID,
         NhomPhanQuyenID: nhomPhanQuyenID,
       };
+      
       const response = await axiosInstance.post('/v1/HeThongPhanQuyen/XoaNguoiDungKhoiNhomPhanQuyen', payload);
       if (response.data.status === 1) {
-        message.success('User  deleted successfully.');
+        message.success('User deleted successfully.');
         window.location.reload();
       } else {
         message.error('Failed to delete the user.');
@@ -313,20 +314,19 @@ const [rightXoa, setRightXoa] = useState(false);
         return;
       }
   
-      // Payload: gửi quyền dưới dạng boolean
+      // Ensure all permissions are included in the payload
       const payload = {
         NhomPhanQuyenID: nhomPhanQuyenID,
         ChucNangID: values.ChucNangID,
-        Xem: rightXem,
-        Them: rightThem,
-        Sua: rightSua,
-        Xoa: rightXoa,
+        Xem: rightXem || false,
+        Them: rightThem || false,
+        Sua: rightSua || false,
+        Xoa: rightXoa || false,
       };
   
       const response = await axiosInstance.post('/v1/HeThongPhanQuyen/ThemChucNangVaoNhomPhanQuyen', payload);
       if (response.data.status === 1) {
         message.success('Thêm chức năng thành công!');
-        // Reload hoặc fetch lại permissions sau khi thêm
         const updatedPermissions = await axiosInstance.get(`/v1/HeThongPhanQuyen/LayDanhSachChucNangTrongNhomPhanQuyenTheoNhomPhanQuyenID?nhomPhanQuyenID=${nhomPhanQuyenID}`);
         if (updatedPermissions.data.status === 1) {
           setPermissionsData(updatedPermissions.data.data);
