@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { message } from 'antd';
-// const API_URL = 'http://192.168.100.4:2003/api/';
-const API_URL = 'https://localhost:7024/api/';
+const API_URL = 'http://192.168.100.4:2003/api/';
+// const API_URL = 'https://localhost:7024/api/';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -69,7 +69,7 @@ axiosInstance.interceptors.response.use(
             throw new Error('❌ Token refresh failed: Invalid response status');
           }
         } catch (refreshError) {
-          localStorage.setItem('token', '');
+          localStorage.setItem('token', );
           localStorage.setItem('refreshToken', '');
           message.error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!');
           window.location.href = '/';

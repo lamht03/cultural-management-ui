@@ -1,7 +1,7 @@
 // màn mãu phiếu
 import React, { useState, useEffect } from 'react';
 import { Button, Layout, Table, Input, Select, message, DatePicker, Modal, Card } from 'antd';
-import { EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import '../../../assets/css/Nguoidung.css';
 import axiosInstance from '../../../utils/axiosInstance';
 const { Option } = Select;
@@ -34,9 +34,6 @@ const Nguoidung = () => {
   const [recordToDelete, setRecordToDelete] = useState(null);
   const [selectedIndicatorFields, setSelectedIndicatorFields] = useState([]);
   const [inputValues, setInputValues] = useState({});  
-  const [thangBaoCao, setThangBaoCao] = useState(''); // For ThangBaoCao
-  const [chiTietMauPhieus, setChiTietMauPhieus] = useState([]); // For ChiTietMauPhieus
-  const [nguoiTao, setNguoiTao] = useState(''); // For NguoiTao
   // màn báo cáo
   const handleFieldSelect = (value) => {
     setSelectedFields(value);
@@ -96,63 +93,9 @@ const Nguoidung = () => {
     setIsAddFieldModalVisible(true);
   };
   const handleUpdate = async () => {
-    try {
-        // Prepare ChiTieuS and TieuChiS in the required format
-        const chiTieuData = chiTieuList.filter(item => selectedIndicatorFields.includes(item.TenChiTieu));
-        const tieuChiData = selectedFields.map(field => {
-            return {
-                TenTieuChi: field,
-                GiaTri: inputValues[field] || ''
-            };
-        });
-        // Prepare ChiTietMauPhieus
-        const chiTietMauPhieus = chiTieuData.map(item => ({
-            ChiTietMauPhieuID: 0, // Assuming you want to create a new ChiTietMauPhieu, set this to 0
-            MauPhieuID: recordToEdit.MauPhieuID, // Use the ID of the record being edited
-            ChitieuID: item.ChiTieuID, // Assuming you have ChiTieuID in your chiTieuData
-            TieuChiIDs: item.TieuChiIDs || [], // Assuming TieuChiIDs is an array
-            GopCot: true, // Set according to your logic
-            GoptuCot: 0, // Set according to your logic
-            GopDenCot: 0, // Set according to your logic
-            SoCotGop: 0, // Set according to your logic
-            NoiDung: '' // Set according to your logic
-        }));
-        // Construct the request body
-        const requestBody = {
-            MauPhieuID: recordToEdit.MauPhieuID, // Use the ID of the record being edited
-            TenMauPhieu: tenMauPhieu,
-            MaMauPhieu: maMauPhieu,
-            KyBaoCaoID: 1, // Assuming this is a constant value
-            ThangBaoCao: thangBaoCao, // Set this according to your logic
-            LoaiMauPhieuID: loaiMauPhieuID,
-            chiTieuS: JSON.stringify(chiTieuData).replace(/\\/g, '\\\\'), // Escape backslashes
-            tieuChiS: JSON.stringify(tieuChiData).replace(/\\/g, '\\\\'), // Escape backslashes
-            chiTietMauPhieus: chiTietMauPhieus, // Include the detailed data
-            NguoiTao: nguoiTao, // Set this according to your logic
-        };
-        // Send the update request
-        const response = await axiosInstance.post('/RpMauPhieu/Update', requestBody);
-        console.log('Update Success:', response.data);
-        // Optionally, you can reset the form fields here
-        resetForm();
-    } catch (error) {
-        console.error('Error:', error);
-    } finally {
-        setIsModalVisible(false);
-    }
+   
 };
-const resetForm = () => {
-  setTenMauPhieu('');
-  setMaMauPhieu('');
-  setLoaiMauPhieuID(0);
-  setSelectedFields([]);
-  setSelectedCriteriaFields([]);
-  setInputValues({});
-  setSelectedIndicatorFields([]);
-  setSelectedChildren([]);
-  setThangBaoCao(''); // Reset ThangBaoCao
-  setNguoiTao(''); // Reset NguoiTao
-};
+
   // màn báo cáo cuối
   const handleAddReport = () => {
     setCardFields(selectedbaocao);
@@ -205,9 +148,7 @@ const resetForm = () => {
           >
             <DeleteOutlined />
           </Button>
-          <Button type="link" danger style={{ color: 'black', fontSize: '20px' }}>
-            <DownloadOutlined />
-          </Button>
+         
         </span>
       ),
     },
@@ -290,48 +231,7 @@ const resetForm = () => {
     }
   };
   const Luu = async () => {
-    try {
-        // Prepare ChiTieuS and TieuChiS in the required format
-        const chiTieuData = chiTieuList.filter(item => selectedIndicatorFields.includes(item.TenChiTieu));
-        const tieuChiData = selectedFields.map(field => {
-            return {
-                TenTieuChi: field,
-                GiaTri: inputValues[field] || ''
-            };
-        });
-        // Prepare ChiTietMauPhieus
-        const chiTietMauPhieus = chiTieuData.map(item => ({
-            MauPhieuID: 0, // Assuming you want to create a new MauPhieu, set this to 0
-            ChitieuID: item.ChiTieuID, // Assuming you have ChiTieuID in your chiTieuData
-            TieuChiIDs: JSON.stringify(item.TieuChiIDs || []), // Assuming TieuChiIDs is an array
-            GopCot: true, // Set according to your logic
-            GoptuCot: 0, // Set according to your logic
-            GopDenCot: 0, // Set according to your logic
-            SoCotGop: 0, // Set according to your logic
-            NoiDung: '' // Set according to your logic
-        }));
-        // Construct the request body
-        const requestBody = {
-            TenMauPhieu: tenMauPhieu,
-            MaMauPhieu: maMauPhieu,
-            LoaiMauPhieuID: loaiMauPhieuID,
-            KyBaoCaoID: 1, // Assuming this is a constant value
-            ThangBaoCao: thangBaoCao, // Set this according to your logic
-            ChiTieuS: JSON.stringify(chiTieuData).replace(/\\/g, '\\\\'), // Escape backslashes
-            TieuChiS: JSON.stringify(tieuChiData).replace(/\\/g, '\\\\'), // Escape backslashes
-            ChiTietMauPhieus: chiTietMauPhieus, // Include the detailed data
-            NguoiTao: nguoiTao, // Set this according to your logic
-        };
-        // Send the insert request
-        const response = await axiosInstance.post('/RpMauPhieu/Insert', requestBody);
-        console.log('Insert Success:', response.data);
-        // Optionally, you can reset the form fields here
-        resetForm();
-    } catch (error) {
-        console.error('Error:', error);
-    } finally {
-        setIsModalVisible(false);
-    }
+   
 };
   return (
     <Layout style={{ minHeight: '100vh' }}>
