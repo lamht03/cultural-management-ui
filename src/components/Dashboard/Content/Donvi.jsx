@@ -308,7 +308,6 @@ const Donvi = () => {
       <Content style={{ padding: '0 50px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
           <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC CƠ QUAN, ĐƠN VỊ</h1>
-          <Button type="primary" onClick={() => showAddModal(null)}>Thêm cơ quan</Button>
         </div>
         <Search placeholder="Tìm kiếm" style={{ width: 200 }} />
         <Select style={{ width: 200 }} options={loaiMauPhieuList.map((item) => ({ value: item.LoaiMauPhieuID, label: item.TenLoaiMauPhieu }))} />

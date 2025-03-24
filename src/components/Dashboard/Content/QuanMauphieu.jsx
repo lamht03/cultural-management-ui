@@ -8,6 +8,9 @@ const { Option } = Select;
 const { Content } = Layout;
 const { Search } = Input;
 const Nguoidung = () => {
+  
+   // Initialize as an empty array
+   const [mauPhieuList, setTieuChiS] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [recordToEdit, setRecordToEdit] = useState(null);
   const [tenMauPhieu, setTenMauPhieu] = useState('');
@@ -46,14 +49,22 @@ const Nguoidung = () => {
     setInputValues(prev => ({ ...prev, ...newInputValues }));
   };
   const handleInputChange = (field, value) => {
-    setInputValues(prev => ({ ...prev, [field]: value }));
-  };
+    setInputValues((prev) => ({
+        ...prev,
+        [field]: value, // Cập nhật giá trị của trường
+    }));
+};
   // màn tiêu chí
   const handleCriteriaFieldSelect = (selectedValues) => {
-    // Lọc các tiêu chí đã chọn từ danh sách `tieuChiList`
-    const selectedFields = selectedValues.map(value => tieuChiList.find(item => item.TenTieuChi === value)).filter(Boolean);
-    // Chỉ lấy danh sách tên tiêu chí sau khi sắp xếp
+    const selectedFields = selectedValues.map(value => 
+        tieuChiList.find(item => item.TenTieuChi === value)
+    ).filter(Boolean);
+    
     setSelectedCriteriaFields(selectedFields.map(item => item.TenTieuChi));
+    
+    // Update the TieuChiS state to reflect the selected criteria
+    const tieuChiS = selectedFields.map(field => field.TenTieuChi);
+    setTieuChiS(tieuChiS); // Assuming you have a state for TieuChiS
 };
   const getAllChildren = (parent) => {
     let children = [];
@@ -93,7 +104,67 @@ const Nguoidung = () => {
     setIsAddFieldModalVisible(true);
   };
   const handleUpdate = async () => {
-   
+    const payload = {
+        MauPhieuID: recordToEdit.key, // Assuming recordToEdit contains the ID of the record being edited
+        TenMauPhieu: tenMauPhieu,
+        MaMauPhieu: maMauPhieu,
+        KyBaoCaoID: 1, // Set this as needed
+        ThangBaoCao: "string", // Set this as needed
+        LoaiMauPhieuID: loaiMauPhieuID,
+        ChiTieuS: JSON.stringify(selectedIndicatorFields.map(field => {
+            const indicator = chiTieuList.find(item => item.TenChiTieu === field);
+            return {
+                ChiTieuID: indicator.ChiTieuID,
+                MaChiTieu: indicator.MaChiTieu,
+                TenChiTieu: indicator.TenChiTieu,
+                ChiTieuChaID: indicator.ChiTieuChaID,
+                GhiChu: indicator.GhiChu,
+                TrangThai: indicator.TrangThai,
+                LoaiMauPhieuID: indicator.LoaiMauPhieuID,
+                children: indicator.children || []
+            };
+        })).replace(/\\/g, '\\\\'), // Send selected fields
+        TieuChiS: JSON.stringify(selectedCriteriaFields.map(field => {
+            const criterion = tieuChiList.find(item => item.TenTieuChi === field);
+            return {
+                TieuChiID: criterion.TieuChiID,
+                MaTieuChi: criterion.MaTieuChi,
+                TenTieuChi: criterion.TenTieuChi,
+                TieuChiChaID: criterion.TieuChiChaID,
+                GhiChu: criterion.GhiChu,
+                KieuDuLieuCot: criterion.KieuDuLieuCot,
+                TrangThai: criterion.TrangThai,
+                LoaiTieuChi: criterion.LoaiTieuChi,
+                CapDo: criterion.CapDo,
+                children: criterion.children || []
+            };
+        })).replace(/\\/g, '\\\\'), // Send selected criteria
+        ChiTietMauPhieus: selectedChildren.map(child => ({
+            ChiTietMauPhieuID: child.ChiTietMauPhieuID || 0, // Use existing ID if editing
+            MauPhieuID: recordToEdit.key, // Reference to the main MauPhieuID
+            ChitieuID: child.ChiTieuID,
+            TieuChiIDs: child.TieuChiIDs || [], // Ensure this is an array of integers
+            GopCot: 1,
+            GoptuCot: 1,
+            GopDenCot: 0,
+            SoCotGop: 0,
+            NoiDung: "" // Set this as needed
+        })),
+        NguoiTao: "", // Set this as needed
+        model: "" // Ensure to include the correct model name here
+    };
+    try {
+        const response = await axiosInstance.post('/RpMauPhieu/Update', payload);
+        if (response.data && response.data.status === 1) {
+            message.success('Cập nhật mẫu phiếu thành công!');
+            setIsModalVisible(false);
+            // Optionally refresh data or update the specific record in the dataSource
+        } else {
+            message.error(response.data.message || 'Cập nhật mẫu phiếu thất bại!');
+        }
+    } catch (error) {
+        message.error('Lỗi khi cập nhật mẫu phiếu: ' + error.message);
+    }
 };
 
   // màn báo cáo cuối
@@ -101,18 +172,7 @@ const Nguoidung = () => {
     setCardFields(selectedbaocao);
     setIsModalbaocao(false);
   };
-  const renderCriteriaOptions = (criteriaList) => {
-    return criteriaList.map(item => (
-      <Option key={item.TieuChiID} value={item.TenTieuChi} disabled={selectedCriteriaFields.includes(item.TenTieuChi)}>
-        {item.TenTieuChi}
-        {item.children && item.children.length > 0 && (
-          <div style={{ paddingLeft: '20px' }}>
-            {renderCriteriaOptions(item.children)} {/* Recursively render children */}
-          </div>
-        )}
-      </Option>
-    ));
-  };
+  
   const handleSelectbaocao = (value) => {
     setSelectedbaocao(value);
     const newInputValues = {};
@@ -154,58 +214,109 @@ const Nguoidung = () => {
     },
   ];
   const handleEdit = async (record) => {
-    // Set the state variables with the data from the selected record
-    setIsEditMode(true);
-    setRecordToEdit(record);
-    setTenMauPhieu(record.TenMauPhieu);
-    setMaMauPhieu(record.MaMauPhieu);
-    setLoaiMauPhieuID(record.LoaiMauPhieuID);
-    // Fetch the detailed data for the selected record if needed
-    // Open the modal for editing
-    setIsModalVisible(true);
+    try {
+        const response = await axiosInstance.get(`/RpMauPhieu/FindByID?id=${record.key}`);
+        if (response.data.status === 1) {
+            const data = response.data.data;
+
+            // Cập nhật các trường cơ bản
+            setTenMauPhieu(data.TenMauPhieu);
+            setMaMauPhieu(data.MaMauPhieu);
+            setLoaiMauPhieuID(data.LoaiMauPhieuID);
+
+            // Cập nhật CotIDs cho "Phần đầu báo cáo"
+            if (Array.isArray(data.CotIDs)) {
+                const fields = data.CotIDs.map((cot) => cot.TenCot); // Lấy danh sách tên cột
+                setSelectedFields(fields);
+
+                const values = data.CotIDs.reduce((acc, cot) => {
+                    acc[cot.TenCot] = cot.GiaTri || ''; // Lấy giá trị của từng cột
+                    return acc;
+                }, {});
+                setInputValues(values);
+            } else {
+                setSelectedFields([]); // Nếu không có CotIDs, đặt giá trị mặc định
+                setInputValues({});
+            }
+
+            // Parse ChiTieuS và TieuChiS
+            const parsedIndicatorFields = data.ChiTieuS ? JSON.parse(data.ChiTieuS) : [];
+            const parsedCriteriaFields = data.TieuChiS ? JSON.parse(data.TieuChiS) : [];
+            setSelectedIndicatorFields(Array.isArray(parsedIndicatorFields) ? parsedIndicatorFields : []);
+            setSelectedCriteriaFields(Array.isArray(parsedCriteriaFields) ? parsedCriteriaFields : []);
+            setSelectedChildren(data.ChiTietMauPhieus || []);
+        } else {
+            message.error('Không thể lấy dữ liệu chi tiết mẫu phiếu');
+        }
+    } catch (error) {
+        message.error('Lỗi khi lấy dữ liệu: ' + error.message);
+    }
+
+    // Đặt trạng thái chỉnh sửa và hiển thị modal
+    setIsEditMode(true); // Chuyển sang chế độ chỉnh sửa
+    setRecordToEdit(record); // Lưu thông tin bản ghi đang chỉnh sửa
+    setIsModalVisible(true); // Hiển thị modal
 };
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [loaiMauPhieuResponse, dataResponse, tieuChiResponse, chiTieuResponse] = await Promise.all([
-          axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20'),
-          axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20'),
-          axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi?pageNumber=1&pageSize=20'),
-          axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu?pageNumber=1&pageSize=20'),
-        ]);
-        if (loaiMauPhieuResponse.data.status === 1) {
-          setLoaiMauPhieuList(loaiMauPhieuResponse.data.data);
-        } else {
-          message.error('Không thể lấy dữ liệu Loại Mẫu Phiếu');
-        }
-        if (dataResponse.data.Status === 1) {
-          const formattedData = dataResponse.data.Data.map((item, index) => ({
-            key: item.MauPhieuID,
-            stt: index + 1,
-            TenMauPhieu: item.TenMauPhieu,
-            LoaiMauPhieuID: item.LoaiMauPhieuID,
-            MaMauPhieu: item.MaMauPhieu,
-          }));
-          setDataSource(formattedData);
-        } else {
-          message.error(dataResponse.data.Message || 'Không thể lấy dữ liệu');
-        }
-        if (tieuChiResponse.data.status === 1) {
-          setTieuChiList(tieuChiResponse.data.data);
-        } else {
-          message.error('Không thể lấy dữ liệu Tiêu Chí');
-        }
-        if (chiTieuResponse.data.status === 1) {
-          setChiTieuList(chiTieuResponse.data.data);
-        } else {
-          message.error('Không thể lấy dữ liệu Chi Tiêu');
-        }
-      } catch (err) {
-        message.error('Lỗi khi lấy dữ liệu: ' + err.message);
-      }
-    };
-    fetchData();
-  }, []);
+const fetchLoaiMauPhieu = async () => {
+  const response = await axiosInstance.get('/v1/DanhMucLoaiMauPhieu/DanhSachLoaiMauPhieu?pageNumber=1&pageSize=20');
+  if (response.data.status === 1) {
+      setLoaiMauPhieuList(response.data.data);
+  } else {
+      message.error('Không thể lấy dữ liệu Loại Mẫu Phiếu');
+  }
+};
+
+const fetchDataMauPhieu = async () => {
+  const response = await axiosInstance.get('/RpMauPhieu/List?pageNumber=1&pageSize=20');
+  if (response.data.Status === 1) {
+      const formattedData = response.data.Data.map((item, index) => ({
+          key: item.MauPhieuID,
+          stt: index + 1,
+          TenMauPhieu: item.TenMauPhieu,
+          LoaiMauPhieuID: item.LoaiMauPhieuID,
+          MaMauPhieu: item.MaMauPhieu,
+      }));
+      setDataSource(formattedData);
+  } else {
+      message.error(response.data.Message || 'Không thể lấy dữ liệu');
+  }
+};
+
+const fetchTieuChi = async () => {
+  const response = await axiosInstance.get('/v1/DanhMucTieuChi/DanhSachTieuChi?pageNumber=1&pageSize=20');
+  if (response.data.status === 1) {
+      setTieuChiList(response.data.data); // Store all items
+  } else {
+      message.error('Không thể lấy dữ liệu Tiêu Chí');
+  }
+};
+
+const fetchChiTieu = async () => {
+  const response = await axiosInstance.get('/v1/DanhMucChiTieu/DanhSachChiTieu?pageNumber=1&pageSize=20');
+  if (response.data.status === 1) {
+      setChiTieuList(response.data.data);
+  } else {
+      message.error('Không thể lấy dữ liệu Chi Tiêu');
+  }
+};
+
+const fetchData = async () => {
+  try {
+      await Promise.all([
+          fetchLoaiMauPhieu(),
+          fetchDataMauPhieu(),
+          fetchTieuChi(),
+          fetchChiTieu(),
+      ]);
+  } catch (err) {
+      message.error('Lỗi khi lấy dữ liệu: ' + err.message);
+  }
+};
+
+useEffect(() => {
+  fetchData();
+}, []);
+
   const renderChildren = (children) => {
     return children.map(child => (
       <div key={child.TieuChiID} className="ml-4 mb-2 border border-gray-300 p-2 rounded-md">
@@ -231,16 +342,62 @@ const Nguoidung = () => {
     }
   };
   const Luu = async () => {
-   
+    const payload = {
+        TenMauPhieu: tenMauPhieu,
+        MaMauPhieu: maMauPhieu,
+        LoaiMauPhieuID: loaiMauPhieuID,
+        KyBaoCaoID: 1, // Set this as needed
+        ThangBaoCao: "string", // Set this as needed
+        ChiTieuS: JSON.stringify(selectedIndicatorFields).replace(/\\/g, '\\\\'), // Send selected fields
+        TieuChiS: JSON.stringify(selectedCriteriaFields).replace(/\\/g, '\\\\'), // Send selected criteria
+        ChiTietMauPhieus: selectedChildren.map(child => ({
+            MauPhieuID: 0, // Set this as needed
+            ChitieuID: child.ChiTieuID,
+            TieuChiIDs: "string", // Set this as needed
+            GopCot: true,
+            GoptuCot: 0,
+            GopDenCot: 0,
+            SoCotGop: 0,
+            NoiDung: "string" // Set this as needed
+        })),
+        NguoiTao: "string" // Set this as needed
+    };
+
+    try {
+        const response = await axiosInstance.post('/RpMauPhieu/Insert', payload);
+        if (response.data.status === 1) {
+            message.success('Thêm mẫu phiếu thành công!');
+            // Optionally, refresh data or close modal
+        } else {
+            message.error(response.data.message || 'Thêm mẫu phiếu thất bại!');
+        }
+    } catch (error) {
+        message.error('Lỗi khi thêm mẫu phiếu: ' + error.message);
+    }
 };
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '20px', backgroundColor: '#fff', border: '1px solid #ccc' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <h1 className="text-2xl font-bold mb-6 text-center">QUẢN LÝ MẪU PHIẾU</h1>
-          <Button type="primary" onClick={() => setIsModalVisible(true)}>
-            Thêm
-          </Button>
+          <Button
+  type="primary"
+  onClick={() => {
+    // Đặt lại trạng thái khi nhấn "Thêm"
+    setIsEditMode(false); // Chuyển sang chế độ thêm mới
+    setRecordToEdit(null); // Xóa dữ liệu bản ghi đang chỉnh sửa
+    setTenMauPhieu(''); // Đặt lại tên mẫu phiếu
+    setMaMauPhieu(''); // Đặt lại mã mẫu phiếu
+    setLoaiMauPhieuID(null); // Đặt lại loại mẫu phiếu
+    setSelectedChildren([]); // Đặt lại danh sách chỉ tiêu con
+    setSelectedIndicatorFields([]); // Đặt lại danh sách chỉ tiêu
+    setSelectedCriteriaFields([]); // Đặt lại danh sách tiêu chí
+    setInputValues({}); // Đặt lại giá trị các trường nhập liệu
+    setIsModalVisible(true); // Hiển thị modal
+  }}
+>
+  Thêm
+</Button>
         </div>
         <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
           <DatePicker picker="year" />
@@ -265,14 +422,14 @@ const Nguoidung = () => {
           />
         </div>
         <Table
-          className="custom-table"
-          dataSource={dataSource.filter(item =>
-            item.TenMauPhieu.toLowerCase().includes(searchName.toLowerCase()) &&
-            (searchLoaiMauPhieu ? item.LoaiMauPhieuID === searchLoaiMauPhieu : true)
-          )}
-          columns={columns}
-          pagination={{ pageSize: 5 }}
-        />
+    className="custom-table"
+    dataSource={dataSource.filter(item =>
+        item.TenMauPhieu.toLowerCase().includes(searchName.toLowerCase()) &&
+        (searchLoaiMauPhieu ? item.LoaiMauPhieuID === searchLoaiMauPhieu : true)
+    )}
+    columns={columns}
+    pagination={{ pageSize: 5 }}
+/>
         {/* Add New Record Modal */}
         <Modal
     title={isEditMode ? "Sửa mẫu phiếu" : "Thêm mới mẫu phiếu"}
@@ -283,7 +440,25 @@ const Nguoidung = () => {
         <Button key="cancel" onClick={() => setIsModalVisible(false)}>
             Hủy
         </Button>,
-        <Button key="save" type="primary" onClick={isEditMode ? handleUpdate : Luu}>
+        <Button
+            key="save"
+            type="primary"
+            onClick={() => {
+                Modal.confirm({
+                    title: 'Xác nhận',
+                    content: isEditMode
+                        ? 'Bạn có chắc chắn muốn cập nhật mẫu phiếu này không?'
+                        : 'Bạn có chắc chắn muốn thêm mới mẫu phiếu này không?',
+                    onOk: () => {
+                        if (isEditMode) {
+                            handleUpdate(); // Call handleUpdate if in edit mode
+                        } else {
+                            Luu(); // Call Luu if in add mode
+                        }
+                    },
+                });
+            }}
+        >
             Lưu
         </Button>,
     ]}
@@ -335,41 +510,42 @@ const Nguoidung = () => {
         </div>
         {/* Card for "Phần đầu báo cáo" */}
         <Card
-            title="Phần đầu báo cáo"
-            extra={<Button type="primary" onClick={handleAddField}>Thêm trường</Button>}
-            className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-        >
-            <p className="text-sm text-gray-500">Các trường thông tin</p>
-            {selectedFields.map(field => (
-                <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                    <label className="block font-semibold mb-1">{field}</label>
-                    <Input.TextArea
-                        placeholder={`Nhập ${field}`}
-                        value={inputValues[field] || ''}
-                        onChange={(e) => handleInputChange(field, e.target.value)}
-                        autoSize={{ minRows: 2, maxRows: 5 }} // Điều chỉnh số dòng hiển thị
-                        className="w-full border border-gray-300 rounded-md p-2"
-                    />
-                </div>
-            ))}
-        </Card>
+    title="Phần đầu báo cáo"
+    extra={<Button type="primary" onClick={handleAddField}>Thêm trường</Button>}
+    className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+>
+    <p className="text-sm text-gray-500">Các trường thông tin</p>
+    {selectedFields.map((field) => (
+        <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+            <label className="block font-semibold mb-1">{field}</label>
+            <Input.TextArea
+                placeholder={`Nhập ${field}`}
+                value={inputValues[field] || ''} // Hiển thị giá trị từ inputValues
+                onChange={(e) => handleInputChange(field, e.target.value)} // Cập nhật giá trị khi người dùng nhập
+                autoSize={{ minRows: 2, maxRows: 5 }}
+                className="w-full border border-gray-300 rounded-md p-2"
+            />
+        </div>
+    ))}
+</Card>
         {/* Card for "Phần tiêu chí" */}
         <Card
-            title="Phần tiêu chí"
-            extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>}
-            className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-        >
-            <p className="text-sm text-gray-500">Các trường thông tin</p>
-            {selectedCriteriaFields.map(field => {
-                const criterion = tieuChiList.find(item => item.TenTieuChi === field);
-                return (
-                    <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                        <label className="block font-semibold mb-1">{field}</label>
-                        {criterion && criterion.children && criterion.children.length > 0 && renderChildren(criterion.children)}
-                    </div>
-                );
-            })}
-        </Card>
+    title="Phần tiêu chí"
+    extra={<Button type="primary" onClick={() => setIsAddCriteriaFieldModalVisible(true)}>Thêm trường</Button>}
+    className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+>
+    <p className="text-sm text-gray-500">Các trường thông tin</p>
+    {selectedCriteriaFields.map(field => {
+        const criterion = tieuChiList.find(item => item.TenTieuChi === field);
+        return (
+            <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+                <label className="block font-semibold mb-1">{field}</label>
+                {criterion && criterion.children && criterion.children.length > 0 && renderChildren(criterion.children)}
+            </div>
+        );
+    })}
+</Card>
+
         {/* Card for "Phần chỉ tiêu" */}
         <Card
     title="Phần chỉ tiêu"
@@ -400,24 +576,24 @@ const Nguoidung = () => {
 </Card>
         {/* Card for "Phần báo cuối" */}
         <Card
-            title="Phần báo cuối"
-            extra={<Button type="primary" onClick={() => setIsModalbaocao(true)}>Thêm trường</Button>}
-            className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-        >
-            <p className="text-sm text-gray-500">Các trường thông tin</p>
-            {cardFields.map(field => (
-                <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
-                    <label className="block font-semibold mb-1">{field}</label>
-                    <Input.TextArea
-                        placeholder={`Nhập ${field}`}
-                        value={inputValues[field] || ''}
-                        onChange={(e) => handleInputChange(field, e.target.value)}
-                        className="w-full border border-gray-300 rounded-md p-2"
-                        autoSize={{ minRows: 2, maxRows: 6 }} // Điều chỉnh kích thước tự động
-                    />
-                </div>
-            ))}
-        </Card>
+    title="Phần báo cuối"
+    extra={<Button type="primary" onClick={() => setIsModalbaocao(true)}>Thêm trường</Button>}
+    className="mb-4 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+>
+    <p className="text-sm text-gray-500">Các trường thông tin</p>
+    {cardFields.map(field => (
+        <div key={field} className="mb-4 border border-gray-300 p-2 rounded-md">
+            <label className="block font-semibold mb-1">{field}</label>
+            <Input.TextArea
+                placeholder={`Nhập ${field}`}
+                value={inputValues[field] || ''}
+                onChange={(e) => handleInputChange(field, e.target.value)}
+                className="w-full border border-gray-300 rounded-md p-2"
+                autoSize={{ minRows: 2, maxRows: 6 }} // Điều chỉnh kích thước tự động
+            />
+        </div>
+    ))}
+</Card>
     </div>
     {/* Right Column */}
     <div className="col-span-1 flex flex-col items-center">
@@ -633,7 +809,11 @@ const Nguoidung = () => {
         value={selectedCriteriaFields}
         onChange={handleCriteriaFieldSelect}
       >
-        {renderCriteriaOptions(tieuChiList.filter(item => item.LoaiTieuChi === 2))}
+        {tieuChiList.filter(item => item.LoaiTieuChi === 2).map(item => (
+            <Option key={item.TieuChiID} value={item.TenTieuChi}>
+                {item.TenTieuChi}
+            </Option>
+        ))}
       </Select>
     </div>
   </div>
