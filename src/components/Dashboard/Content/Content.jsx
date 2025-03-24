@@ -1,5 +1,7 @@
 import React from 'react';
-import imageSrc from '../../../assets/img/z6360018199423_c3e83ec9f1f3ded7c8bafb0135d27a8e.jpg';
+// Sử dụng require để đảm bảo đường dẫn chính xác
+const imageSrc = require('../../../assets/img/z6437607220714_b17d1a37815351c4c87c1f5a70ee435e.jpg');
+
 const contentStyle = {
   width: '100%',
   textAlign: 'center',
