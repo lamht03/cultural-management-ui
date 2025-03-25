@@ -80,3 +80,12 @@
       margin-bottom: 20px;
     }
     
+    .login-image img {
+      width: 100vw; /* Chiều rộng 100% màn hình */
+      height: 60vh; /* Chiều cao 100% màn hình */
+      object-fit: cover; /* Đảm bảo ảnh không bị méo */
+      border-radius: 10px; /* Bo tròn góc */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    

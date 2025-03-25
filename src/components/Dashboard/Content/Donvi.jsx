@@ -310,7 +310,7 @@ const Donvi = () => {
           <h1 className="text-2xl font-bold mb-6 text-center">DANH MỤC CƠ QUAN, ĐƠN VỊ</h1>
         </div>
         <Search placeholder="Tìm kiếm" style={{ width: 200 }} />
-        <Select style={{ width: 200 }} options={loaiMauPhieuList.map((item) => ({ value: item.LoaiMauPhieuID, label: item.TenLoaiMauPhieu }))} />
+        
         <div style={{ maxHeight: '400px', overflowY: 'auto', overflowX: 'auto' }}>
           <Tree
             showLine
