@@ -76,9 +76,12 @@ const Login = () => {
   return (
     <div className="login-container">
       <header className="login-header">
-        <h1 className="login-title font-bold text-2xl text-gray-800">
-          Phần mềm quản lý cơ sở dữ liệu chuyên ngành Văn hóa và Thể thao
-        </h1>
+      <h1 className="login-title font-bold text-2xl text-gray-800 text-center">
+  Phần mềm quản lý cơ sở dữ liệu chuyên ngành <br /> Văn hóa và Thể thao
+</h1>
+
+
+
       </header>
       <div className="login-box">
         <div className="login-image">

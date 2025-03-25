@@ -12,7 +12,7 @@ const columns = (onEdit, onDelete) => [
     dataIndex: 'stt',
     key: 'stt',
     align: 'center',
-    render: (_, __, index) => index + 1,
+    render: (_, __, index) => <strong>{index + 1}</strong>,
   },
   {
     title: 'Tên loại mẫu phiếu',
@@ -198,17 +198,15 @@ const Nguoidung = () => {
         />
       </div>
       <Table
-        className="custom-table"
-        columns={columns(handleOpenModal, handleDelete)}
-        dataSource={filteredData}
-        pagination={{
-          pageSize: 5,
-          onChange: (page, pageSize) => {
-            console.log('Page:', page, 'PageSize:', pageSize);
-          },
-        }}
-        rowClassName="editable-row"
-      />
+  className="custom-table"
+  columns={columns(handleOpenModal, handleDelete)}
+  dataSource={filteredData}
+  style={{ border: '1px solid #ddd' }} // Chỉnh độ đậm viền bảng
+  pagination={{
+    pageSize: 5,
+  }}
+  rowClassName="editable-row"
+/>
       <AddEditModal
         isVisible={isModalOpen}
         modalMode={isEditMode ? 'edit' : 'add'}
